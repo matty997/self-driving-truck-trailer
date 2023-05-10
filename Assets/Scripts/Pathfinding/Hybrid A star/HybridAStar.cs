@@ -17,10 +17,10 @@ namespace PathfindingForVehicles
         //The steering angles we are going to test
         private static float maxAngle = 40f;
         // Calculate the angle spacing
-        private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, 0f, maxAngle * Mathf.Deg2Rad };
+        private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, 0f,  maxAngle * Mathf.Deg2Rad };
         //The car will never reach the exact goal position, this is how accurate we want to be
         private const float posAccuracy = 1f;
-        private const float headingAccuracy = 5f;
+        private const float headingAccuracy = 15f;
         //The heading resolution (Junior had 5) [degrees]
         private const float headingResolution = 5f;
         private const float headingResolutionTrailer = 5f;
@@ -99,9 +99,14 @@ namespace PathfindingForVehicles
                 heading: startCar.HeadingInRadians,
                 isReversing: false);
 
+            Debug.Log($"Start Car info \th {startCar.HeadingInDegrees} \tx {startCar.rearWheelPos.x} \ty {startCar.rearWheelPos.z}");
+            Debug.Log($"End Car info \th {endCar.HeadingInDegrees} \tx {endCar.rearWheelPos.x} \ty {endCar.rearWheelPos.z}");
+
             if (startTrailer != null)
             {
                 node.TrailerHeadingInRadians = startTrailer.HeadingInRadians;
+                Debug.Log($"Start Trailer \th {startTrailer.HeadingInDegrees} \tx {startTrailer.rearWheelPos.x} \ty {startTrailer.rearWheelPos.z}");
+                Debug.Log($"End Trailer \th {endTrailer.HeadingInDegrees} \tx {endTrailer.rearWheelPos.x} \ty {endTrailer.rearWheelPos.z}");
             }
 
             node.AddCosts(gCost: 0f, hCost: cellData[startCellPos.x, startCellPos.z].heuristics);
@@ -210,11 +215,11 @@ namespace PathfindingForVehicles
                     float distanceSqrToGoal = (nextNode.rearWheelPos - endCar.rearWheelPos).sqrMagnitude;
 
                     //But we also need to make sure the vehicle has correct heading
-                    float headingDifference = Mathf.Abs(endCar.HeadingInDegrees - nextNode.HeadingInDegrees);
+                    float headingDifference = Mathf.Abs(Mathf.DeltaAngle(endCar.HeadingInDegrees, nextNode.HeadingInDegrees));
                     float trailerHeadingDiff = 0.0f;
                     if (startTrailer != null)
                     {
-                        trailerHeadingDiff = Mathf.Abs(endTrailer.HeadingInDegrees - nextNode.TrailerHeadingInDegrees);
+                        trailerHeadingDiff = Mathf.Abs(Mathf.DeltaAngle(endTrailer.HeadingInDegrees, nextNode.TrailerHeadingInDegrees));
                     }
                     
 
@@ -493,7 +498,7 @@ namespace PathfindingForVehicles
                     float heuristics = HeuristicsToReachGoal(cellData, cellPos, childNode, endCar, carData);
 
                     childNode.AddCosts(
-                        gCost: CostToReachNode(childNode, map, cellData),
+                        gCost: CostToReachNode(childNode, map, cellData, alpha),
                         hCost: heuristics);
 
                     //Calculate the new heading of the trailer if we have a trailer
@@ -516,25 +521,29 @@ namespace PathfindingForVehicles
 
                         // Add generic cost of trailer angle
                         //Debug.Log($"State info | Heading: {newHeading} | Trailer heading: {newTrailerHeading}");
-                        float relTrailerAngle = Math.Abs(newTrailerHeading - newHeading);
+                        float relTrailerAngle = Math.Abs(Mathf.DeltaAngle(newTrailerHeading * Mathf.Rad2Deg, newHeading * Mathf.Deg2Rad));
                         childNode.gCost += relTrailerAngle * Parameters.trailerAngleCost;
-                        
-                        // Add heuristic costs for trailer position/angle
-                        float trailerAngleH = Math.Abs(newTrailerHeading - endTrailer.HeadingInRadians);
-                        // Vector3 newTrailerRearWheelPos = newRearWheelPos;
+
                         //We know where the trailer is attached to the drag vehicle
                         Vector3 trailerAttachmentPoint = carData.GetTrailerAttachmentPoint(newRearWheelPos, childNode.HeadingInRadians);
-                        //Now we need the trailer's rear-wheel pos based on the new heading
+                        //Now we need the trailer's rear-wheel position based on the new heading and current attachment point
                         Vector3 trailerRearWheelPos = startTrailer.carData.GetTrailerRearWheelPos(trailerAttachmentPoint, newTrailerHeading);
                         Vector3 trailerToTarget = endTrailer.rearWheelPos - trailerRearWheelPos;
                         float trailerDistance = (trailerToTarget).magnitude;
-                        float trailerDistanceH = trailerDistance * 2;
-                        Vector3 finalDirectionVector = new Vector3(MathF.Cos(endTrailer.HeadingInRadians), MathF.Sin(endTrailer.HeadingInRadians), 0.0f);
-                        float dotProduct = Vector3.Dot(Vector3.Normalize(trailerToTarget), finalDirectionVector);
-                        float trailerSidewaysDistance = Math.Abs(trailerDistance * MathF.Sin(MathF.Acos(dotProduct) - endTrailer.HeadingInRadians));
-                        float trailerForwardDistance = Math.Abs(trailerDistance * dotProduct);
-                        float trailerHeuristics = trailerAngleH*100/trailerDistance + trailerDistance*10;
-                        // trailerHeuristics = 0;
+                        float trailerForwardDistance = (float)Math.Abs((endTrailer.rearWheelPos.x - trailerRearWheelPos.x) * Math.Sin(endTrailer.HeadingInRadians) 
+                            + (endTrailer.rearWheelPos.z - trailerRearWheelPos.z) * Math.Cos(endTrailer.HeadingInRadians));
+                        float trailerSidewaysDistance = (float)Math.Abs((endTrailer.rearWheelPos.x - trailerRearWheelPos.x) * Math.Cos(endTrailer.HeadingInRadians) 
+                            - (endTrailer.rearWheelPos.z - trailerRearWheelPos.z) * Math.Sin(endTrailer.HeadingInRadians));
+                        float truckSidewaysDistance = (float)Math.Abs((endCar.rearWheelPos.x - newRearWheelPos.x) * Math.Cos(endCar.HeadingInRadians)
+                            - (endCar.rearWheelPos.z - newRearWheelPos.z) * Math.Sin(endCar.HeadingInRadians));
+                        float trailerAngleH = 0f;
+                        if (trailerDistance < 20)
+                        { // Add heuristic costs for trailer position/angle
+                            trailerAngleH = Math.Abs(Mathf.DeltaAngle(newTrailerHeading * Mathf.Rad2Deg, endTrailer.HeadingInDegrees));
+                        }
+                        float trailerHeuristics = trailerAngleH * 0.4f + trailerDistance * 4f +
+                            trailerForwardDistance * 0.0f + trailerSidewaysDistance * 0.3f + truckSidewaysDistance * 0.1f;
+                        //trailerHeuristics = 0;
                         childNode.hCost += trailerHeuristics;
                         /*Debug.Log($"fCost: {childNode.fCost} | gCost: {childNode.gCost} | relAngle: {relTrailerAngle} | " +
                             $"hCost: {childNode.hCost} | Trailer: {trailerHeuristics} | Angle: {trailerAngleH} | " +
@@ -598,7 +607,7 @@ namespace PathfindingForVehicles
                         float heuristics = HeuristicsToReachGoal(cellData, cellPos, childNode, endCar, carData);
 
                         childNode.AddCosts(
-                            gCost: CostToReachNode(childNode, map, cellData),
+                            gCost: CostToReachNode(childNode, map, cellData, 0f),
                             hCost: heuristics);
 
                         childNodes.Add(childNode);
@@ -653,7 +662,7 @@ namespace PathfindingForVehicles
         //
         // Calculate costs
         //
-        private static float CostToReachNode(Node node, Map map, Cell[,] cellData)
+        private static float CostToReachNode(Node node, Map map, Cell[,] cellData, float steeringAngle)
         {
             Node previousNode = node.previousNode;
 
@@ -681,6 +690,8 @@ namespace PathfindingForVehicles
                 switchMotionCost = Parameters.switchingDirectionOfMovementCost;
             }
 
+            //Cost 5 - steering angle
+            float steeringCost = steeringAngle * Parameters.turningCost;
 
             //Calculate the final cost
             float cost = costSoFar + distanceCost * (1f + voronoiCost + reverseCost) + switchMotionCost;

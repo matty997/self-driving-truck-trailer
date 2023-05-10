@@ -27,7 +27,7 @@ namespace PathfindingForVehicles
         public const float maxObstacleSize = 15f;
         public const float minObstacleSize = 1f;
         //How many obstacles
-        public const int obstaclesToAdd = 40;
+        public const int obstaclesToAdd = 0;
 
         //Smooth path
         //Minimize the distance between the smooth position and the non-smooth position
@@ -42,13 +42,13 @@ namespace PathfindingForVehicles
         //Hybrid A*
         //Costs to make the car behave in different ways
         //For example, we prefere to drive forward instead of reversing
-        public const float turningCost = 0.2f;
+        public const float turningCost = 0.4f;
         public const float obstacleCost = 1.0f;
         public const float reverseCost = 1f;
-        public const float switchingDirectionOfMovementCost = 500f;
+        public const float switchingDirectionOfMovementCost = 200f;
         //Extra cost for trailer because its not good at reversing
-        public const float trailerReverseCost = 50f;
-        public const float trailerAngleCost = 20f;
+        public const float trailerReverseCost = 20f;
+        public const float trailerAngleCost = 0.3f;
 
         //Voronoi field
         //The falloff rate > 0
