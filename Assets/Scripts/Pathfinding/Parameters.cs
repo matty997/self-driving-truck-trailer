@@ -27,7 +27,7 @@ namespace PathfindingForVehicles
         public const float maxObstacleSize = 15f;
         public const float minObstacleSize = 1f;
         //How many obstacles
-        public const int obstaclesToAdd = 0;
+        public const int obstaclesToAdd = 30;
 
         //Smooth path
         //Minimize the distance between the smooth position and the non-smooth position
@@ -42,18 +42,27 @@ namespace PathfindingForVehicles
         //Hybrid A*
         //Costs to make the car behave in different ways
         //For example, we prefere to drive forward instead of reversing
-        public const float turningCost = 0.4f;
+        //Cost to go
+        public const float turningCost = 0.5f;      // [rad]
+        public const float turningChangeCost = 0.0f;// [rad] not yet implemented
         public const float obstacleCost = 1.0f;
-        public const float reverseCost = 1f;
-        public const float switchingDirectionOfMovementCost = 200f;
+        public const float reverseCost = 1f;        // [m]
+        public const float switchingDirectionOfMovementCost = 100f;
         //Extra cost for trailer because its not good at reversing
-        public const float trailerReverseCost = 20f;
-        public const float trailerAngleCost = 0.3f;
+        public const float trailerReverseCost = 10f;
+        public const float trailerAngleCost = 0.05f * Mathf.Deg2Rad; // Angle truck/trailer [deg]
+        //Heuristic Costs scale factors
+        public const float carDistance = 1.0f;              // distance to end position of car/truck
+        public const float trailerDistance = 0.0f;          // distance to end position of trailer
+        public const float trailerSidewaysDistance = 0.0f;  // sideways distance to end position of trailer
+        public const float trailerForwardDistance = 0.0f;   // forward distance to end position of trailer
+        public const float trailerAngle = 0.0f;             // diff angle trailer current/end
+        public const float truckSidewaysDistance = 0.0f;    // sideways distance to end position of truck
 
         //Voronoi field
         //The falloff rate > 0
-        public const float voronoi_alpha = 10f;
+        public const float voronoi_alpha = 5f;
         //The maximum effective range of the field > 0 
-        public const float d_o_max = 50f;
+        public const float d_o_max = 30f;
     }
 }

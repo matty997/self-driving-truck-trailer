@@ -11,16 +11,17 @@ namespace PathfindingForVehicles
     {
         //The distance between each waypoint
         //Should be greater than the hypotenuse of the cell width or node may end up in the same cell
-        public static float driveDistance = Mathf.Sqrt((Parameters.cellWidth * Parameters.cellWidth) * 2f) + 0.01f;
+        public static float driveDistance = Mathf.Sqrt((Parameters.cellWidth * Parameters.cellWidth) * 2f)*2f + 0.01f;
         //Used in the loop to easier include reversing
         private static float[] driveDistances = new float[] { driveDistance, -driveDistance};
         //The steering angles we are going to test
         private static float maxAngle = 40f;
         // Calculate the angle spacing
-        private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, 0f,  maxAngle * Mathf.Deg2Rad };
+        private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, -maxAngle * Mathf.Deg2Rad/2, 0f, 
+            maxAngle * Mathf.Deg2Rad/2, maxAngle * Mathf.Deg2Rad };
         //The car will never reach the exact goal position, this is how accurate we want to be
         private const float posAccuracy = 1f;
-        private const float headingAccuracy = 15f;
+        private const float headingAccuracy = 5f;
         //The heading resolution (Junior had 5) [degrees]
         private const float headingResolution = 5f;
         private const float headingResolutionTrailer = 5f;
@@ -498,10 +499,10 @@ namespace PathfindingForVehicles
                     float heuristics = HeuristicsToReachGoal(cellData, cellPos, childNode, endCar, carData);
 
                     childNode.AddCosts(
-                        gCost: CostToReachNode(childNode, map, cellData, alpha),
+                        gCost: CostToReachNode(childNode, map, cellData, alpha, 0f),
                         hCost: heuristics);
 
-                    //Calculate the new heading of the trailer if we have a trailer
+                    //Calculate the new heading of the trailer if we have a trailer and add trailer heuristics
                     if (startTrailer != null)
                     {
                         //Whats the new trailer heading at this childNode
@@ -516,7 +517,7 @@ namespace PathfindingForVehicles
                         //The trailer sux when reversing so add an extra cost
                         if (childNode.isReversing)
                         {
-                            childNode.gCost += Parameters.trailerReverseCost;
+                            childNode.gCost += (Parameters.trailerReverseCost - Parameters.reverseCost) * driveDistance;
                         }
 
                         // Add generic cost of trailer angle
@@ -541,9 +542,9 @@ namespace PathfindingForVehicles
                         { // Add heuristic costs for trailer position/angle
                             trailerAngleH = Math.Abs(Mathf.DeltaAngle(newTrailerHeading * Mathf.Rad2Deg, endTrailer.HeadingInDegrees));
                         }
-                        float trailerHeuristics = trailerAngleH * 0.4f + trailerDistance * 4f +
-                            trailerForwardDistance * 0.0f + trailerSidewaysDistance * 0.3f + truckSidewaysDistance * 0.1f;
-                        //trailerHeuristics = 0;
+                        float trailerHeuristics = trailerAngleH * Parameters.trailerAngle + trailerDistance * Parameters.trailerDistance +
+                            trailerForwardDistance * Parameters.trailerForwardDistance + trailerSidewaysDistance * Parameters.trailerSidewaysDistance + 
+                            truckSidewaysDistance * Parameters.truckSidewaysDistance;
                         childNode.hCost += trailerHeuristics;
                         /*Debug.Log($"fCost: {childNode.fCost} | gCost: {childNode.gCost} | relAngle: {relTrailerAngle} | " +
                             $"hCost: {childNode.hCost} | Trailer: {trailerHeuristics} | Angle: {trailerAngleH} | " +
@@ -607,7 +608,7 @@ namespace PathfindingForVehicles
                         float heuristics = HeuristicsToReachGoal(cellData, cellPos, childNode, endCar, carData);
 
                         childNode.AddCosts(
-                            gCost: CostToReachNode(childNode, map, cellData, 0f),
+                            gCost: CostToReachNode(childNode, map, cellData, 0f, 0f),
                             hCost: heuristics);
 
                         childNodes.Add(childNode);
@@ -655,14 +656,14 @@ namespace PathfindingForVehicles
                 }
             }
 
-            return heuristics;
+            return heuristics * Parameters.carDistance;
         }
 
 
         //
         // Calculate costs
         //
-        private static float CostToReachNode(Node node, Map map, Cell[,] cellData, float steeringAngle)
+        private static float CostToReachNode(Node node, Map map, Cell[,] cellData, float steeringAngle, float oldSteeringAngle)
         {
             Node previousNode = node.previousNode;
 
@@ -678,6 +679,7 @@ namespace PathfindingForVehicles
 
             //Cost 2 - avoid obstacles by using the voronoi field
             float voronoiCost = Parameters.obstacleCost * cellData[cellPos.x, cellPos.z].voronoiFieldCell.voronoiFieldValue;
+            voronoiCost = 0;
 
             //Cost 3 - reversing because its better to drive forward
             float reverseCost = node.isReversing ? Parameters.reverseCost : 0f;
@@ -691,10 +693,13 @@ namespace PathfindingForVehicles
             }
 
             //Cost 5 - steering angle
-            float steeringCost = steeringAngle * Parameters.turningCost;
+            float steeringCost = Math.Abs(Mathf.DeltaAngle(steeringAngle, 0)) * Parameters.turningCost;
+
+            //Cost 6 - change in steering angle
+            float steeringChangeCost = Math.Abs(steeringAngle - oldSteeringAngle) * Parameters.turningChangeCost;
 
             //Calculate the final cost
-            float cost = costSoFar + distanceCost * (1f + voronoiCost + reverseCost) + switchMotionCost;
+            float cost = costSoFar + distanceCost * (1f + voronoiCost + reverseCost) + switchMotionCost + steeringCost + steeringChangeCost;
 
 
             return cost;
@@ -715,7 +720,15 @@ namespace PathfindingForVehicles
             //Loop from the end of the path until we reach the start node
             while (currentNode != null)
             {
-                finalPath.Add(currentNode);
+                if (!finalPath.Contains(currentNode))
+                {
+                    finalPath.Add(currentNode);
+                }
+                else
+                {
+                    Debug.Log("node already in path! Circle detected");
+                    break;
+                }
 
                 //Get the next node
                 currentNode = currentNode.previousNode;
