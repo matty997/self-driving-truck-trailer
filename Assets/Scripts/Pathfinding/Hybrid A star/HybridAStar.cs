@@ -19,7 +19,7 @@ namespace PathfindingForVehicles
         // Calculate the angle spacing
         private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, 0f, maxAngle * Mathf.Deg2Rad };
         //The car will never reach the exact goal position, this is how accurate we want to be
-        private const float posAccuracy = 1f;
+        private const float posAccuracy = 5f; // was 1
         private const float headingAccuracy = 5f;
         //The heading resolution (Junior had 5) [degrees]
         private const float headingResolution = 5f;
@@ -504,7 +504,7 @@ namespace PathfindingForVehicles
                         float thetaOldDragVehicle = currentNode.HeadingInRadians;
                         float D = driveDistance;
                         float d = startTrailer.carData.WheelBase;
-                        float newTrailerHeading = VehicleSimulationModels.CalculateNewTrailerHeading(thetaOld, thetaOldDragVehicle, D, d);
+                        float newTrailerHeading = VehicleSimulationModels.CalculateNewTrailerHeading(thetaOld, thetaOldDragVehicle, D, d, alpha, newHeading);
 
                         childNode.TrailerHeadingInRadians = newTrailerHeading;
 

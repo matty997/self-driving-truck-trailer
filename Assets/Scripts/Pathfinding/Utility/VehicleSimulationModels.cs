@@ -86,14 +86,18 @@ namespace PathfindingForVehicles
         /// <param name="D">Drive distance [m]. Should be negative if we reverse</param>
         /// <param name="d">Distance between trailer attachment point and trailer rear axle [m]</param>
         /// <returns>The trailer's new heading [rad]</returns>
-        public static float CalculateNewTrailerHeading(float thetaOld, float thetaOldDragVehicle, float D, float d)
+        public static float CalculateNewTrailerHeading(float thetaOld, float thetaOldDragVehicle, float D, float d, float alpha, float newHeading)
         {
             //According to some D is velocity of the drag vehicle but is not really working
             //From "Planning algorithms" which is different from http://planning.cs.uiuc.edu/node661.html#77556
             //where (thetaOldDragVehicle - thetaOld) is the opposite which gives a mirrored result
             //float theta = thetaOld + (D / d) * Mathf.Sin(thetaOldDragVehicle - thetaOld);
-
-            float theta = thetaOld + ((D / d) * Mathf.Sin(thetaOldDragVehicle - thetaOld));
+            float M = -0.5f;
+            float L1 = 5f;
+            float L2 = 12f;
+            
+            float delta_theta = D*((Mathf.Tan(alpha)/L1)-(Mathf.Sin(thetaOldDragVehicle-thetaOld)/L2)+M*Mathf.Cos(thetaOldDragVehicle-thetaOld)*Mathf.Tan(alpha)/(L1*L2));
+            float theta = newHeading+thetaOld-thetaOldDragVehicle-delta_theta;
 
             //Clamp heading - is sometimes causing infinite loop so dont use?
             theta = HelpStuff.WrapAngleInRadians(theta);
