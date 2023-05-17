@@ -31,11 +31,11 @@ namespace PathfindingForVehicles
 
         //Smooth path
         //Minimize the distance between the smooth position and the non-smooth position
-        public const float alpha = 0.10f;
+        public const float alpha = 0; //0.10f;
         //Minimize the distance between this position and the surrounding positions
-        public const float beta = 0.40f;
+        public const float beta = 0; //0.40f;
         //Maximize the distance between the position and the closest obstacle
-        public const float gamma = 0.05f;
+        public const float gamma = 0; //0.05f;
         //Push the path towards low areas in the Voronoi field = areas far away from obstacles
         public const float delta = 0.00f;
 
@@ -47,17 +47,17 @@ namespace PathfindingForVehicles
         public const float turningChangeCost = 0.0f;// [rad] not yet implemented
         public const float obstacleCost = 1.0f;
         public const float reverseCost = 1f;        // [m]
-        public const float switchingDirectionOfMovementCost = 100f;
+        public const float switchingDirectionOfMovementCost = 20f;
         //Extra cost for trailer because its not good at reversing
-        public const float trailerReverseCost = 10f;
-        public const float trailerAngleCost = 0.05f * Mathf.Deg2Rad; // Angle truck/trailer [deg]
+        public const float trailerReverseCost = 1f;
+        public const float trailerAngleCost = 0.5f * Mathf.Deg2Rad; // Angle truck/trailer [deg]
         //Heuristic Costs scale factors
         public const float carDistance = 1.0f;              // distance to end position of car/truck
         public const float trailerDistance = 0.0f;          // distance to end position of trailer
-        public const float trailerSidewaysDistance = 0.0f;  // sideways distance to end position of trailer
+        public const float trailerSidewaysDistance = 0.5f;  // sideways distance to end position of trailer
         public const float trailerForwardDistance = 0.0f;   // forward distance to end position of trailer
-        public const float trailerAngle = 0.0f;             // diff angle trailer current/end
-        public const float truckSidewaysDistance = 0.0f;    // sideways distance to end position of truck
+        public const float trailerAngle = 0.5f;             // diff angle trailer current/end
+        public const float truckSidewaysDistance = 0.2f;    // sideways distance to end position of truck
 
         //Voronoi field
         //The falloff rate > 0

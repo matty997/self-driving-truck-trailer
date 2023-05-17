@@ -72,6 +72,10 @@ namespace PathfindingForVehicles
             //}
 
             //Debug.Log(theta + " " + theta2);
+            if(theta < 0)
+            {
+                Debug.Log("Theta < 0!");
+            }
 
             return theta;
         }
@@ -93,7 +97,7 @@ namespace PathfindingForVehicles
             //where (thetaOldDragVehicle - thetaOld) is the opposite which gives a mirrored result
             //float theta = thetaOld + (D / d) * Mathf.Sin(thetaOldDragVehicle - thetaOld);
 
-            float theta = thetaOld + ((D / d) * Mathf.Sin(thetaOldDragVehicle - thetaOld));
+            float theta = thetaOld + ((D / d) * Mathf.Sin(Mathf.DeltaAngle(thetaOld * Mathf.Rad2Deg, thetaOldDragVehicle * Mathf.Rad2Deg) * Mathf.Deg2Rad));
 
             //Clamp heading - is sometimes causing infinite loop so dont use?
             theta = HelpStuff.WrapAngleInRadians(theta);

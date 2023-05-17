@@ -11,17 +11,18 @@ namespace PathfindingForVehicles
     {
         //The distance between each waypoint
         //Should be greater than the hypotenuse of the cell width or node may end up in the same cell
-        public static float driveDistance = Mathf.Sqrt((Parameters.cellWidth * Parameters.cellWidth) * 2f)*2f + 0.01f;
+        public static float driveDistance = Mathf.Sqrt((Parameters.cellWidth * Parameters.cellWidth) * 2f) + 0.01f;
         //Used in the loop to easier include reversing
         private static float[] driveDistances = new float[] { driveDistance, -driveDistance};
         //The steering angles we are going to test
         private static float maxAngle = 40f;
         // Calculate the angle spacing
-        private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, -maxAngle * Mathf.Deg2Rad/2, 0f, 
-            maxAngle * Mathf.Deg2Rad/2, maxAngle * Mathf.Deg2Rad };
+        private static int steeringAnglesAmount= 5;
+        //private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, 0f, maxAngle * Mathf.Deg2Rad };
+        private static float[] steeringAngles = generateSteeringAngles(maxAngle, steeringAnglesAmount);
         //The car will never reach the exact goal position, this is how accurate we want to be
         private const float posAccuracy = 1f;
-        private const float headingAccuracy = 5f;
+        private const float headingAccuracy = 15f;
         //The heading resolution (Junior had 5) [degrees]
         private const float headingResolution = 5f;
         private const float headingResolutionTrailer = 5f;
@@ -34,9 +35,26 @@ namespace PathfindingForVehicles
         private static int timer_ReedsSheppHeuristics;
         private static int timer_TrailerCollision;
         //At what distance to should we start expanding Reeds-Shepp nodes
-        private static float maxReedsSheppDist = 15f;
+        private static float maxReedsSheppDist = 0f;
 
 
+        //
+        // Generate equally spaced steering angles to explore during child finding
+        //
+        public static float[] generateSteeringAngles(float maxAngle, int numberOfAngles)
+        {
+            float[] angles = new float[numberOfAngles];
+            maxAngle *= Mathf.Deg2Rad;
+            float angleStep = (2 * maxAngle) / (numberOfAngles - 1);
+
+            for (int i = 0; i < numberOfAngles; i++)
+            {
+                angles[i] = (-maxAngle + (i * angleStep));
+                Debug.Log(angles[i]);
+            }
+            
+            return angles;
+        }
 
         //
         // Generate a path with Hybrid A*
@@ -414,8 +432,10 @@ namespace PathfindingForVehicles
 
             for (int i = 0; i < finalPath.Count; i++)
             {
-                //Debug.Log($"Node {i} | fCost {finalPath[i].fCost} | gCost {finalPath[i].gCost} | hCost {finalPath[i].hCost} | " +
-                //    $"Heading: {finalPath[i].heading} | Trailer: {finalPath[i].TrailerHeadingInRadians} | Reversing: {finalPath[i].isReversing}");
+                Debug.Log($"Node {i} | fCost {finalPath[i].fCost} | gCost {finalPath[i].gCost} | hCost {finalPath[i].hCost} | " +
+                    $"Heading: {finalPath[i].heading * Mathf.Rad2Deg} | Trailer: {finalPath[i].TrailerHeadingInDegrees} | " +
+                    $"Relative: {Mathf.DeltaAngle(finalPath[i].TrailerHeadingInDegrees, finalPath[i].heading * Mathf.Rad2Deg)} | " +
+                    $"Reversing: {finalPath[i].isReversing}");
             }
 
             //Display how long time everything took
@@ -517,7 +537,7 @@ namespace PathfindingForVehicles
                         //The trailer sux when reversing so add an extra cost
                         if (childNode.isReversing)
                         {
-                            childNode.gCost += (Parameters.trailerReverseCost - Parameters.reverseCost) * driveDistance;
+                            childNode.gCost -= (Parameters.trailerReverseCost - Parameters.reverseCost) * driveDistance;
                         }
 
                         // Add generic cost of trailer angle
@@ -571,7 +591,7 @@ namespace PathfindingForVehicles
 
             float probability = UnityEngine.Random.Range(0f, 1f);
 
-            if ((distanceToEnd < maxReedsSheppDist && probability < testProbability) || (distanceToEnd < 40f && probability < 0.005f))
+            if (distanceToEnd < maxReedsSheppDist && (probability < testProbability || probability < 0.005f))
             {
                 List<RSCar> shortestPath = ReedsShepp.GetShortestPath(
                     currentNode.rearWheelPos, 
@@ -613,6 +633,12 @@ namespace PathfindingForVehicles
 
                         childNodes.Add(childNode);
 
+                        if (childNode.heading < 0)
+                        {
+                            Debug.Log("RS Heading < 0!");
+                            Debug.Log(distanceToEnd < maxReedsSheppDist);
+                            Debug.Log(distanceToEnd);
+                        }
                         //Debug.Log("Added RS node");
                     }    
                 }
