@@ -28,6 +28,9 @@ namespace PathfindingForVehicles
         //Trailer heading in radians
         private float trailerHeading;
 
+        //Steering angle used to reach node, need this for cost calculations
+        public float nodesteeringangle;
+
         //The node we took to get here so we can get the final path
         public Node previousNode;
 
@@ -41,11 +44,12 @@ namespace PathfindingForVehicles
         }
 
 
-        public Node(Node previousNode, Vector3 rearWheelPos, float heading, bool isReversing)
+        public Node(Node previousNode, Vector3 rearWheelPos, float heading, float nodesteeringangle, bool isReversing)
         {
             this.previousNode = previousNode;
             this.rearWheelPos = rearWheelPos;
             this.heading = heading;
+            this.nodesteeringangle = nodesteeringangle;
             this.isReversing = isReversing;
         }
 

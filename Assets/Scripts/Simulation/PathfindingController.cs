@@ -40,7 +40,7 @@ public class PathfindingController : MonoBehaviour
 
         int startTime = Environment.TickCount;
             
-        this.GetComponent<ObstaclesGenerator>().InitObstacles(map, startPos);
+        this.GetComponent<ObstaclesGenerator>().InitObstacles(map);
             
         string timeText = DisplayController.GetDisplayTimeText(startTime, Environment.TickCount, "Generate obstacles and Voronoi diagram");
 
@@ -278,7 +278,8 @@ public class PathfindingController : MonoBehaviour
             //Smooth the path by making it smoother and adding waypoints to make it easier for the car to follow the path 
             startTime = Environment.TickCount;
 
-            smoothPath = ModifyPath.SmoothPath(finalPath, map, isCircular: false, isDebugOn: true);
+            // smoothPath = ModifyPath.SmoothPath(finalPath, map, isCircular: false, isDebugOn: true);
+            smoothPath = finalPath;
 
             timeText += DisplayController.GetDisplayTimeText(startTime, Environment.TickCount, "Smooth path");
 

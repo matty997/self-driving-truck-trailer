@@ -25,7 +25,7 @@ namespace SelfDrivingVehicle
     {
         public List<AxleInfo> axleInfos;
 
-        //An nimation curve that will deterine the wheel angle as a function of speed
+        //An animation curve that will deterine the wheel angle as a function of speed
         public AnimationCurve wheelAngleCurve;
 
         //Speed calculations

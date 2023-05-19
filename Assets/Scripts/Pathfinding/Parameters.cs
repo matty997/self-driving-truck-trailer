@@ -16,18 +16,22 @@ namespace PathfindingForVehicles
 
         //Map data
         //The size of all cells in [m]
-        public const int mapWidth = 160;
+        public const int mapWidth = 60; //160, don't need large map when main focus is on parking. Instead of navigating large areas
         //The size of one cell in [m]
-        public const float cellWidth = 1f;
+        public const float cellWidth = 1f; //1f
 
         //Obstacles
         //Make the car fatter to be on the safe side when checking collisions
-        public const float marginOfSafety = 1.0f;
+        public const float marginOfSafety = 0.2f; //1.0f, disabled for now because it is refusing to park in narrow spaces now
         //Size of each random obstacle
         public const float maxObstacleSize = 15f;
         public const float minObstacleSize = 1f;
         //How many obstacles
+<<<<<<< Updated upstream
         public const int obstaclesToAdd = 40;
+=======
+        public const int obstaclesToAdd = 30;  // 0 for testing custom scene, was 30
+>>>>>>> Stashed changes
 
         //Smooth path
         //Minimize the distance between the smooth position and the non-smooth position
@@ -42,6 +46,7 @@ namespace PathfindingForVehicles
         //Hybrid A*
         //Costs to make the car behave in different ways
         //For example, we prefere to drive forward instead of reversing
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         public const float turningCost = 0.2f;
         public const float obstacleCost = 1.0f;
@@ -67,6 +72,25 @@ namespace PathfindingForVehicles
         public const float trailerForwardDistance = 0.0f;   // forward distance to end position of trailer
         public const float trailerAngle = 0.0f;             // diff angle trailer current/end
         public const float truckSidewaysDistance = 0.0f;    // sideways distance to end position of truck
+>>>>>>> Stashed changes
+=======
+        //Cost to go
+        public const float turningCost = 1.0f;      // [rad] 0.5f
+        public const float turningChangeCost = 5.0f;// [rad] test implementation
+        public const float obstacleCost = 1.0f;
+        public const float reverseCost = 1.0f;        // [m]
+        public const float switchingDirectionOfMovementCost = 100f; //20f
+        //Extra cost for trailer because its not good at reversing
+        public const float trailerReverseCost = 5f; //1f
+        public const float trailerAngleCost = 200.0f * Mathf.Deg2Rad; // Angle truck/trailer [deg] 0.5f
+        //Heuristic Costs scale factors
+        public const float carDistance = 10.0f;              // distance to end position of car/truck 2.0-3.0f
+        public const float trailerDistance = 0.0f;          // distance to end position of trailer
+        public const float trailerSidewaysDistance = 0.0f;  // sideways distance to end position of trailer  0.5f
+        public const float trailerForwardDistance = 0.0f;   // forward distance to end position of trailer
+        public const float trailerAngle = 0.0f;             // diff angle trailer current/end 0.5f
+        public const float truckSidewaysDistance = 0.0f;    // sideways distance to end position of truck 0.2f
+        public const float trailerheuristicsdistance = 40.0f; // Distance cutoff where trailer heuristics, test
 >>>>>>> Stashed changes
 
         //Voronoi field

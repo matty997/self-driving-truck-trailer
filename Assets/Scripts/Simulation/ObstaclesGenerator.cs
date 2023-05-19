@@ -15,10 +15,35 @@ namespace PathfindingForVehicles
 
 
 
-        public void InitObstacles(Map map, Vector3 startPos)
+        public void InitObstacles(Map map)
         {
+            List<Vector3> predefinedPositions = new List<Vector3>();
+            List<Vector3> predefinedScales = new List<Vector3>(); 
+
+            int parkingLotSize = 10; // Number of parking spots
+            float parkingSpaceWidth = 6f; // Width of parking spots, width of truck seems to be around 3f, for reference
+            float parkingSpaceLength = 18f; // Length of parking space , length of truck seems to be around 17f, for reference
+
+            // Vertical lines for boundaries of parking spots
+            for (float i = 0; i <= parkingLotSize * parkingSpaceWidth; i += parkingSpaceWidth)
+            {
+                Vector3 startPos = new Vector3(i, 0, 0);
+                Vector3 endPos = new Vector3(i, 0, parkingSpaceLength);
+
+                Vector3 obstaclePos = Vector3.Lerp(startPos, endPos, 0.5f); // Position will be at the middle of the line
+                Vector3 obstacleScale = new Vector3(0.1f, 1f, (endPos - startPos).magnitude); // Scale will be equal to line's length
+
+                predefinedPositions.Add(obstaclePos);
+                predefinedScales.Add(obstacleScale);
+            }
+
+            for (int i = 0; i < predefinedPositions.Count; i++)
+            {
+                AddObstacle(map, predefinedPositions[i], predefinedScales[i]);
+            }
+
             //Generate obstacles
-            GenerateObstacles(map, startPos);
+            //GenerateObstacles(map, startPos);
 
             int mapWidth = map.MapWidth;
 
@@ -44,67 +69,51 @@ namespace PathfindingForVehicles
 
         //Generate obstacles and return the center coordinates of them in a list 
         //We need the car data so we can avoid adding obstacles at that position
-        private void GenerateObstacles(Map map, Vector3 startPos)
-        {
+        //private void GenerateObstacles(Map map, Vector3 startPos)
+        //{
             //The rectangle where the car starts so we can remove obstacles in that area
-            float marginOfSafety = 10f;
+            //float marginOfSafety = 10f;
 
-            float halfLength = (4f + 11f + marginOfSafety) * 0.5f;
-            float halfWidth = (3f + marginOfSafety) * 0.5f;
+            //float halfLength = (4f + 11f + marginOfSafety) * 0.5f;
+            //float halfWidth = (3f + marginOfSafety) * 0.5f;
 
             //The center pos is not the startPos because the semi is not the center of trailer + semi
-            startPos += Vector3.forward * -6f;
+            //startPos += Vector3.forward * -6f;
 
-            Vector3 FL = startPos + Vector3.forward * halfLength - Vector3.right * halfWidth;
-            Vector3 FR = startPos + Vector3.forward * halfLength + Vector3.right * halfWidth;
-            Vector3 BL = startPos - Vector3.forward * halfLength - Vector3.right * halfWidth;
-            Vector3 BR = startPos - Vector3.forward * halfLength + Vector3.right * halfWidth;
+            //Vector3 FL = startPos + Vector3.forward * halfLength - Vector3.right * halfWidth;
+            //Vector3 FR = startPos + Vector3.forward * halfLength + Vector3.right * halfWidth;
+            //Vector3 BL = startPos - Vector3.forward * halfLength - Vector3.right * halfWidth;
+            //Vector3 BR = startPos - Vector3.forward * halfLength + Vector3.right * halfWidth;
 
-            Rectangle avoidRect = new Rectangle(FL, FR, BL, BR);
+            //Rectangle avoidRect = new Rectangle(FL, FR, BL, BR);
 
-            for (int i = 0; i < Parameters.obstaclesToAdd; i++)
-            {
-                AddObstacle(map, avoidRect);
-            }
-        }
+            //for (int i = 0; i < Parameters.obstaclesToAdd; i++)
+            //{
+            //    AddObstacle(map, avoidRect);
+            //}
+        //}
 
 
 
 
         //Instantiate one cube and add its position to the array
-        void AddObstacle(Map map, Rectangle avoidRect)
+        void AddObstacle(Map map, Vector3 predefinedPosition, Vector3 predefinedScale) // Changed to add scale, so we can place rectangles of specific sizes, like long ones
         {
-            //Generate random coordinates in the map
-            float posX = Random.Range(1f, map.MapWidth - 1f);
-            float posZ = Random.Range(1f, map.MapWidth - 1f);
-            //Rotation
-            float rotY = Random.Range(0f, 360f);
-            //Size
-            float sizeX = Random.Range(Parameters.minObstacleSize, Parameters.maxObstacleSize);
-            float sizeZ = Random.Range(Parameters.minObstacleSize, Parameters.maxObstacleSize);
+            float posX = predefinedPosition.x;
+            float posZ = predefinedPosition.z;
 
             Vector3 pos = new Vector3(posX, 0.5f, posZ);
+            Quaternion rot = Quaternion.Euler(0f, 0f, 0f);
 
-            Quaternion rot = Quaternion.Euler(0f, rotY, 0f);
+            //Vector3 scale = new Vector3(sizeX, 1f, sizeZ);
+            Vector3 scale = predefinedScale; // Use the predefined scale
 
-            Vector3 scale = new Vector3(sizeX, 1f, sizeZ);
-
-            //Update the prefab with the new data
             obstaclePrefabObj.transform.position = pos;
             obstaclePrefabObj.transform.rotation = rot;
             obstaclePrefabObj.transform.localScale = scale;
 
             Obstacle newObstacle = new Obstacle(obstaclePrefabObj.transform);
 
-
-            //The obstacle shouldnt intersect with the start area
-            if (Intersections.AreRectangleRectangleIntersecting(avoidRect, newObstacle.cornerPos))
-            {
-                return;
-            }
-
-
-            //Add a new obstacle object at this position
             Instantiate(obstaclePrefabObj, obstaclesParent);
 
             map.allObstacles.Add(newObstacle);
