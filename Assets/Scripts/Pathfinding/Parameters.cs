@@ -27,11 +27,7 @@ namespace PathfindingForVehicles
         public const float maxObstacleSize = 15f;
         public const float minObstacleSize = 1f;
         //How many obstacles
-<<<<<<< Updated upstream
-        public const int obstaclesToAdd = 40;
-=======
         public const int obstaclesToAdd = 30;  // 0 for testing custom scene, was 30
->>>>>>> Stashed changes
 
         //Smooth path
         //Minimize the distance between the smooth position and the non-smooth position
@@ -46,34 +42,6 @@ namespace PathfindingForVehicles
         //Hybrid A*
         //Costs to make the car behave in different ways
         //For example, we prefere to drive forward instead of reversing
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        public const float turningCost = 0.2f;
-        public const float obstacleCost = 1.0f;
-        public const float reverseCost = 1f;
-        public const float switchingDirectionOfMovementCost = 500f;
-        //Extra cost for trailer because its not good at reversing
-        public const float trailerReverseCost = 50f;
-        public const float trailerAngleCost = 20f;
-=======
-        //Cost to go
-        public const float turningCost = 0.3f;      // [rad] was 0.5f
-        public const float turningChangeCost = 0.0f;// [rad] not yet implemented
-        public const float obstacleCost = 0.5f; // was 1.0f
-        public const float reverseCost = 0.5f;        // [m] was 1f
-        public const float switchingDirectionOfMovementCost = 35f; // was 100f
-        //Extra cost for trailer because its not good at reversing
-        public const float trailerReverseCost = 10f; // was 10f
-        public const float trailerAngleCost = 0.05f * Mathf.Deg2Rad; // Angle truck/trailer [deg]
-        //Heuristic Costs scale factors
-        public const float carDistance = 5.0f;              // distance to end position of car/truck was 0.0f ????
-        public const float trailerDistance = 0.0f;          // distance to end position of trailer
-        public const float trailerSidewaysDistance = 0.0f;  // sideways distance to end position of trailer
-        public const float trailerForwardDistance = 0.0f;   // forward distance to end position of trailer
-        public const float trailerAngle = 0.0f;             // diff angle trailer current/end
-        public const float truckSidewaysDistance = 0.0f;    // sideways distance to end position of truck
->>>>>>> Stashed changes
-=======
         //Cost to go
         public const float turningCost = 1.0f;      // [rad] 0.5f
         public const float turningChangeCost = 5.0f;// [rad] test implementation
@@ -91,7 +59,6 @@ namespace PathfindingForVehicles
         public const float trailerAngle = 0.0f;             // diff angle trailer current/end 0.5f
         public const float truckSidewaysDistance = 0.0f;    // sideways distance to end position of truck 0.2f
         public const float trailerheuristicsdistance = 40.0f; // Distance cutoff where trailer heuristics, test
->>>>>>> Stashed changes
 
         //Voronoi field
         //The falloff rate > 0

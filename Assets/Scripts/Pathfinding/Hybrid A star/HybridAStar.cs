@@ -19,13 +19,8 @@ namespace PathfindingForVehicles
         // Calculate the angle spacing
         private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, 0f, maxAngle * Mathf.Deg2Rad };
         //The car will never reach the exact goal position, this is how accurate we want to be
-<<<<<<< Updated upstream
-        private const float posAccuracy = 5f; // was 1
-        private const float headingAccuracy = 5f;
-=======
         private const float posAccuracy = 1f;
-        private const float headingAccuracy = 10f;
->>>>>>> Stashed changes
+        private const float headingAccuracy = 15f;
         //The heading resolution (Junior had 5) [degrees]
         private const float headingResolution = 5f;
         private const float headingResolutionTrailer = 5f;
@@ -39,10 +34,10 @@ namespace PathfindingForVehicles
         private static int timer_TrailerCollision;
         //At what distance to should we start expanding Reeds-Shepp nodes
         private static float maxReedsSheppDist = 15f;
+        //Oldsteeringangle needed for costs of steering change
+        public static float oldSteeringAngle;
 
 
-<<<<<<< Updated upstream
-=======
         //
         // Generate equally spaced steering angles to explore during child finding
         //
@@ -60,7 +55,6 @@ namespace PathfindingForVehicles
             
             return angles;
         }
->>>>>>> Stashed changes
 
         //
         // Generate a path with Hybrid A*
@@ -125,20 +119,11 @@ namespace PathfindingForVehicles
                 nodesteeringangle: 0f,
                 isReversing: false);
 
-<<<<<<< Updated upstream
-            if (startTrailer != null)
-            {
-                node.TrailerHeadingInRadians = startTrailer.HeadingInRadians;
-=======
-            //Debug.Log($"Start Car info \th {startCar.HeadingInDegrees} \tx {startCar.rearWheelPos.x} \ty {startCar.rearWheelPos.z}");
-            //Debug.Log($"End Car info \th {endCar.HeadingInDegrees} \tx {endCar.rearWheelPos.x} \ty {endCar.rearWheelPos.z}");
-
             if (startTrailer != null)
             {
                 node.TrailerHeadingInRadians = startTrailer.HeadingInRadians;
                 //Debug.Log($"Start Trailer \th {startTrailer.HeadingInDegrees} \tx {startTrailer.rearWheelPos.x} \ty {startTrailer.rearWheelPos.z}");
                 //Debug.Log($"End Trailer \th {endTrailer.HeadingInDegrees} \tx {endTrailer.rearWheelPos.x} \ty {endTrailer.rearWheelPos.z}");
->>>>>>> Stashed changes
             }
 
             node.AddCosts(gCost: 0f, hCost: cellData[startCellPos.x, startCellPos.z].heuristics);
@@ -554,12 +539,7 @@ namespace PathfindingForVehicles
 
                         // Add generic cost of trailer angle
                         //Debug.Log($"State info | Heading: {newHeading} | Trailer heading: {newTrailerHeading}");
-<<<<<<< Updated upstream
-                        float relTrailerAngle = Math.Abs(newTrailerHeading - newHeading);
-=======
                         float relTrailerAngle = Math.Abs(Mathf.DeltaAngle(newTrailerHeading * Mathf.Rad2Deg, newHeading * Mathf.Deg2Rad));
-                        //childNode.gCost += relTrailerAngle * Parameters.trailerAngleCost;
->>>>>>> Stashed changes
                         childNode.gCost += relTrailerAngle * Parameters.trailerAngleCost;
                         
                         // Add heuristic costs for trailer position/angle
@@ -571,36 +551,21 @@ namespace PathfindingForVehicles
                         Vector3 trailerRearWheelPos = startTrailer.carData.GetTrailerRearWheelPos(trailerAttachmentPoint, newTrailerHeading);
                         Vector3 trailerToTarget = endTrailer.rearWheelPos - trailerRearWheelPos;
                         float trailerDistance = (trailerToTarget).magnitude;
-<<<<<<< Updated upstream
-                        float trailerDistanceH = trailerDistance * 2;
-                        Vector3 finalDirectionVector = new Vector3(MathF.Cos(endTrailer.HeadingInRadians), MathF.Sin(endTrailer.HeadingInRadians), 0.0f);
-                        float dotProduct = Vector3.Dot(Vector3.Normalize(trailerToTarget), finalDirectionVector);
-                        float trailerSidewaysDistance = Math.Abs(trailerDistance * MathF.Sin(MathF.Acos(dotProduct) - endTrailer.HeadingInRadians));
-                        float trailerForwardDistance = Math.Abs(trailerDistance * dotProduct);
-                        float trailerHeuristics = trailerAngleH*100/trailerDistance + trailerDistance*10;
-                        // trailerHeuristics = 0;
-                        childNode.hCost += trailerHeuristics;
-                        /*Debug.Log($"fCost: {childNode.fCost} | gCost: {childNode.gCost} | relAngle: {relTrailerAngle} | " +
-=======
+
                         float trailerForwardDistance = (float)Math.Abs((endTrailer.rearWheelPos.x - trailerRearWheelPos.x) * Math.Sin(endTrailer.HeadingInRadians) 
                             + (endTrailer.rearWheelPos.z - trailerRearWheelPos.z) * Math.Cos(endTrailer.HeadingInRadians));
                         float trailerSidewaysDistance = (float)Math.Abs((endTrailer.rearWheelPos.x - trailerRearWheelPos.x) * Math.Cos(endTrailer.HeadingInRadians) 
                             - (endTrailer.rearWheelPos.z - trailerRearWheelPos.z) * Math.Sin(endTrailer.HeadingInRadians));
                         float truckSidewaysDistance = (float)Math.Abs((endCar.rearWheelPos.x - newRearWheelPos.x) * Math.Cos(endCar.HeadingInRadians)
                             - (endCar.rearWheelPos.z - newRearWheelPos.z) * Math.Sin(endCar.HeadingInRadians));
-                        float trailerAngleH = 0f;
                         if (trailerDistance < Parameters.trailerheuristicsdistance)
                         { // Add heuristic costs for trailer position/angle
                             trailerAngleH = Math.Abs(Mathf.DeltaAngle(newTrailerHeading * Mathf.Rad2Deg, endTrailer.HeadingInDegrees));
                             float trailerHeuristics = trailerAngleH * Parameters.trailerAngle + trailerDistance * Parameters.trailerDistance +
                             trailerForwardDistance * Parameters.trailerForwardDistance + trailerSidewaysDistance * Parameters.trailerSidewaysDistance + 
                             truckSidewaysDistance * Parameters.truckSidewaysDistance;
-                            childNode.hCost += trailerHeuristics;
-                            //float scaledtrailerHeuristics = trailerHeuristics * ((Parameters.trailerheuristicsdistance+1)/(trailerDistance+1));
-                            //childNode.hCost += scaledtrailerHeuristics;
-
-                            /*Debug.Log($"fCost: {childNode.fCost} | gCost: {childNode.gCost} | relAngle: {relTrailerAngle} | " +
->>>>>>> Stashed changes
+                        childNode.hCost += trailerHeuristics;
+                        /*Debug.Log($"fCost: {childNode.fCost} | gCost: {childNode.gCost} | relAngle: {relTrailerAngle} | " +
                             $"hCost: {childNode.hCost} | Trailer: {trailerHeuristics} | Angle: {trailerAngleH} | " +
                             $"Distance: {trailerDistanceH} | Forward: {trailerForwardDistance} | Sideways: {trailerSideaysDistance}");*/
                         }
@@ -627,8 +592,7 @@ namespace PathfindingForVehicles
             //float probability = UnityEngine.Random.Range(0f, 1f);
             float probability = 20.0f;
 
-<<<<<<< Updated upstream
-            if ((distanceToEnd < maxReedsSheppDist && probability < testProbability) || (distanceToEnd < 40f && probability < 0.005f))
+            if (distanceToEnd < maxReedsSheppDist && (probability < testProbability || probability < 0.005f))
             {
                 List<RSCar> shortestPath = ReedsShepp.GetShortestPath(
                     currentNode.rearWheelPos, 
@@ -638,18 +602,6 @@ namespace PathfindingForVehicles
                     carData.turningRadius, 
                     driveDistance,
                     generateOneWp: true);
-=======
-            // if (distanceToEnd < maxReedsSheppDist && (probability < testProbability || probability < 0.005f))
-            // {
-            //     List<RSCar> shortestPath = ReedsShepp.GetShortestPath(
-            //         currentNode.rearWheelPos, 
-            //         currentNode.heading, 
-            //         endCar.rearWheelPos, 
-            //         endCar.HeadingInRadians, 
-            //         carData.turningRadius, 
-            //         driveDistance,
-            //         generateOneWp: true);
->>>>>>> Stashed changes
 
             //     if (shortestPath != null && shortestPath.Count > 1)
             //     {
@@ -676,35 +628,22 @@ namespace PathfindingForVehicles
 
             //             float heuristics = HeuristicsToReachGoal(cellData, cellPos, childNode, endCar, carData);
 
-<<<<<<< Updated upstream
-                        childNode.AddCosts(
-                            gCost: CostToReachNode(childNode, map, cellData),
-                            hCost: heuristics);
-=======
-            //             childNode.AddCosts(
-            //                 gCost: CostToReachNode(childNode, map, cellData, 0f, 0f),
-            //                 hCost: heuristics);
->>>>>>> Stashed changes
+            //            childNode.AddCosts(
+            //                gCost: CostToReachNode(childNode, map, cellData, 0f, 0f),
+            //                hCost: heuristics);
 
             //             childNodes.Add(childNode);
 
-<<<<<<< Updated upstream
+            //            if (childNode.heading < 0)
+            //            {
+            //                Debug.Log("RS Heading < 0!");
+            //                Debug.Log(distanceToEnd < maxReedsSheppDist);
+            //                Debug.Log(distanceToEnd);
+            //            }
                         //Debug.Log("Added RS node");
-                    }    
-                }
-            }
-=======
-            //             if (childNode.heading < 0)
-            //             {
-            //                 Debug.Log("RS Heading < 0!");
-            //                 Debug.Log(distanceToEnd < maxReedsSheppDist);
-            //                 Debug.Log(distanceToEnd);
-            //             }
-            //             //Debug.Log("Added RS node");
-            //         }    
-            //     }
-            // }
->>>>>>> Stashed changes
+            }    
+                
+            
 
             timer_ReedsSheppNode += Environment.TickCount - timeBefore;
 
