@@ -24,6 +24,8 @@ namespace PathfindingForVehicles
         public float heading;
         //Is the car reversing when traveling to this node?
         public bool isReversing;
+        //Steering angle of the car
+        public float steeringAngle;
 
         //Trailer heading in radians
         private float trailerHeading;
@@ -89,6 +91,11 @@ namespace PathfindingForVehicles
             get { return this.trailerHeading * Mathf.Rad2Deg; }
         }
 
+        public float SteeringAngleInDegrees
+        {
+            get { return this.steeringAngle * Mathf.Rad2Deg; }
+        }
+
 
 
         //Take the data from this node and add it to another node
@@ -133,6 +140,13 @@ namespace PathfindingForVehicles
             }
 
             return -compare;
+        }
+
+        //Log debug info
+        public void PrintInfo()
+        {
+            string display = "To be implemented";
+            Debug.Log(display);
         }
     }
 }

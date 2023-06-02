@@ -11,21 +11,21 @@ namespace PathfindingForVehicles
     {
         //The distance between each waypoint
         //Should be greater than the hypotenuse of the cell width or node may end up in the same cell
-        public static float driveDistance = Mathf.Sqrt((Parameters.cellWidth * Parameters.cellWidth) * 2f) + 0.01f;
+        public static float driveDistance = Mathf.Sqrt((Parameters.cellWidth * Parameters.cellWidth) * 2f) * 2f + 0.01f;
         //Used in the loop to easier include reversing
-        private static float[] driveDistances = new float[] { driveDistance, -driveDistance};
+        private static float[] driveDistances = new float[] { -driveDistance, driveDistance};
         //The steering angles we are going to test
-        private static float maxAngle = 40f;
+        private static float maxAngle = 30f;
         // Calculate the angle spacing
-        private static int steeringAnglesAmount= 5;
+        private static int steeringAnglesAmount= 7;
         //private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, 0f, maxAngle * Mathf.Deg2Rad };
         private static float[] steeringAngles = generateSteeringAngles(maxAngle, steeringAnglesAmount);
         //The car will never reach the exact goal position, this is how accurate we want to be
         private const float posAccuracy = 1f;
         private const float headingAccuracy = 15f;
         //The heading resolution (Junior had 5) [degrees]
-        private const float headingResolution = 5f;
-        private const float headingResolutionTrailer = 5f;
+        private const float headingResolution = 2f;
+        private const float headingResolutionTrailer = 2f;
         //To time the different parts of the algorithm 
         private static int timer_selectLowestCostNode;
         private static int timer_addNodeToHeap;
@@ -90,7 +90,7 @@ namespace PathfindingForVehicles
             Dictionary<int, Node>[,] lowestCostNodes = new Dictionary<int, Node>[mapWidth, mapWidth];
             //Trailer
             //int in the dictionaries below is the rounded heading used to enter a cell
-            HashSet<int>[,] closedCellsTrailer = new HashSet<int>[mapWidth, mapWidth];
+            Dictionary<int, HashSet<int>>[,] closedCellsTrailer = new Dictionary<int, HashSet<int>>[mapWidth, mapWidth];
             HashSet<int>[,] lowestCostNodesTrailer = new HashSet<int>[mapWidth, mapWidth];
 
             for (int x = 0; x < mapWidth; x++)
@@ -101,7 +101,7 @@ namespace PathfindingForVehicles
                     lowestCostNodes[x, z] = new Dictionary<int, Node>();
 
                     //Trailer
-                    closedCellsTrailer[x, z] = new HashSet<int>();
+                    closedCellsTrailer[x, z] = new Dictionary<int, HashSet<int>>();
                     lowestCostNodesTrailer[x, z] = new HashSet<int>();
                 }
             }
@@ -117,6 +117,7 @@ namespace PathfindingForVehicles
                 rearWheelPos: startCar.rearWheelPos,
                 heading: startCar.HeadingInRadians,
                 isReversing: false);
+            node.steeringAngle = 0f;
 
             Debug.Log($"Start Car info \th {startCar.HeadingInDegrees} \tx {startCar.rearWheelPos.x} \ty {startCar.rearWheelPos.z}");
             Debug.Log($"End Car info \th {endCar.HeadingInDegrees} \tx {endCar.rearWheelPos.x} \ty {endCar.rearWheelPos.z}");
@@ -206,11 +207,22 @@ namespace PathfindingForVehicles
                     {
                         int roundedHeadingTrailer = HelpStuff.RoundValue(nextNode.TrailerHeadingInDegrees, headingResolutionTrailer);
 
-                        HashSet<int> closedTrailerHeadingsInThisCell = closedCellsTrailer[cellPos.x, cellPos.z];
+                        Dictionary<int, HashSet<int>> closedTrailerHeadingsInThisCell = closedCellsTrailer[cellPos.x, cellPos.z];
 
-                        if (!closedTrailerHeadingsInThisCell.Contains(roundedHeadingTrailer))
+                        /*if (!closedTrailerHeadingsInThisCell[roundedHeading].Contains(roundedHeadingTrailer))
                         {
-                            closedTrailerHeadingsInThisCell.Add(roundedHeadingTrailer);
+                            closedTrailerHeadingsInThisCell[roundedHeading].Add(roundedHeadingTrailer);
+                        }*/
+
+                        if (!closedTrailerHeadingsInThisCell.TryGetValue(roundedHeading, out HashSet<int> trailerHeadings))
+                        {
+                            trailerHeadings = new HashSet<int>();
+                            closedTrailerHeadingsInThisCell[roundedHeading] = trailerHeadings;
+                        }
+
+                        if (!trailerHeadings.Contains(roundedHeadingTrailer))
+                        {
+                            trailerHeadings.Add(roundedHeadingTrailer);
                         }
                         else
                         {
@@ -240,12 +252,12 @@ namespace PathfindingForVehicles
                     {
                         trailerHeadingDiff = Mathf.Abs(Mathf.DeltaAngle(endTrailer.HeadingInDegrees, nextNode.TrailerHeadingInDegrees));
                     }
-                    
+
 
                     //If we end up in the same cell or is within a certain distance from the goal
                     if ((distanceSqrToGoal < posAccuracy * posAccuracy || (cellPos.x == goalCellPos.x && cellPos.z == goalCellPos.z)) &&
                         headingDifference < headingAccuracy && trailerHeadingDiff < headingAccuracy)
-                    {                    
+                    {
                         found = true;
 
                         Debug.Log("Found a path");
@@ -262,6 +274,7 @@ namespace PathfindingForVehicles
                     {
                         //Get all child nodes
                         timeBefore = Environment.TickCount;
+                        //Debug.Log($"Parent Node heading: {nextNode.HeadingInDegrees} \t cost: {nextNode.fCost}");
 
                         List<Node> children = GetChildrenToNode(nextNode, map, cellData, startCar.carData, endCar, startTrailer, endTrailer);
 
@@ -272,28 +285,33 @@ namespace PathfindingForVehicles
                         foreach (Node child in children)
                         {
                             IntVector2 childCell = map.ConvertWorldToCell(child.rearWheelPos);
+                            //Debug.Log($"\tChild Node reversing: {child.isReversing} \t Heading: {child.HeadingInDegrees} \t cost: {child.fCost}");
 
                             int roundedChildHeading = HelpStuff.RoundValue(child.HeadingInDegrees, headingResolution);
-
                             //Has this cell been closed with this heading?
                             //If so, it means we already have a path at this cell with this heading, 
                             //and the existing node is cheaper because we have already expanded it
-                            if (closedCells[childCell.x, childCell.z].Contains(roundedChildHeading) && startTrailer == null)
-                            {                            
-                                prunedNodes += 1;
-
-                                continue;
-                            }
-                            //If we have a trailer
-                            else if (closedCells[childCell.x, childCell.z].Contains(roundedChildHeading) && startTrailer != null)
+                            if (closedCells[childCell.x, childCell.z].Contains(roundedChildHeading))
                             {
-                                int roundedTrailerHeading = HelpStuff.RoundValue(child.TrailerHeadingInDegrees, headingResolutionTrailer);
-
-                                if (closedCellsTrailer[childCell.x, childCell.z].Contains(roundedTrailerHeading))
+                                if (startTrailer == null)
                                 {
                                     prunedNodes += 1;
 
+                                    //Debug.Log("\t\tpruned node");
                                     continue;
+                                }
+
+                                //If we have a trailer
+                                else
+                                {
+                                    int roundedTrailerHeading = HelpStuff.RoundValue(child.TrailerHeadingInDegrees, headingResolutionTrailer) % 360;
+
+                                    if (closedCellsTrailer[childCell.x, childCell.z][roundedChildHeading].Contains(roundedTrailerHeading))
+                                    {
+                                        prunedNodes += 1;
+
+                                        continue;
+                                    }
                                 }
                             }
 
@@ -322,7 +340,7 @@ namespace PathfindingForVehicles
                                 //If the open node has a smaller gCost, then we dont need this child node, so do nothing
 
                                 prunedNodes += 1;
-
+                                //Debug.Log("\t\tpruned node");
                                 continue;
                             }
                             //We have a trailer
@@ -372,7 +390,7 @@ namespace PathfindingForVehicles
                             if (ObstaclesDetection.HasCarInvalidPosition(child.rearWheelPos, child.heading, startCar.carData, map))
                             {
                                 prunedNodes += 1;
-
+                                //Debug.Log("\t\tpruned node");
                                 continue;
                             }
                             timer_isCollidingWithObstacle += Environment.TickCount - timeBefore;
@@ -435,7 +453,8 @@ namespace PathfindingForVehicles
                 Debug.Log($"Node {i} | fCost {finalPath[i].fCost} | gCost {finalPath[i].gCost} | hCost {finalPath[i].hCost} | " +
                     $"Heading: {finalPath[i].heading * Mathf.Rad2Deg} | Trailer: {finalPath[i].TrailerHeadingInDegrees} | " +
                     $"Relative: {Mathf.DeltaAngle(finalPath[i].TrailerHeadingInDegrees, finalPath[i].heading * Mathf.Rad2Deg)} | " +
-                    $"Reversing: {finalPath[i].isReversing}");
+                    $"Reversing: {finalPath[i].isReversing} | " +
+                    $"Steering Angle: {finalPath[i].SteeringAngleInDegrees}");
             }
 
             //Display how long time everything took
@@ -457,7 +476,7 @@ namespace PathfindingForVehicles
 
             display += DisplayController.GetDisplayText("Expanded nodes", allExpandedNodes.Count, ". ");
             
-            display += DisplayController.GetDisplayText("Pruned nodes", prunedNodes, null);            
+            display += DisplayController.GetDisplayText("Pruned nodes", prunedNodes, null);
 
             Debug.Log(display);
 
@@ -515,6 +534,7 @@ namespace PathfindingForVehicles
                        rearWheelPos: newRearWheelPos,
                        heading: newHeading,
                        isReversing: driveDistance < 0f ? true : false);
+                    childNode.steeringAngle = alpha;
 
                     float heuristics = HeuristicsToReachGoal(cellData, cellPos, childNode, endCar, carData);
 
@@ -550,7 +570,9 @@ namespace PathfindingForVehicles
                         //Now we need the trailer's rear-wheel position based on the new heading and current attachment point
                         Vector3 trailerRearWheelPos = startTrailer.carData.GetTrailerRearWheelPos(trailerAttachmentPoint, newTrailerHeading);
                         Vector3 trailerToTarget = endTrailer.rearWheelPos - trailerRearWheelPos;
+                        //Debug.Log(trailerToTarget);
                         float trailerDistance = (trailerToTarget).magnitude;
+                        //Debug.Log(trailerDistance);
                         float trailerForwardDistance = (float)Math.Abs((endTrailer.rearWheelPos.x - trailerRearWheelPos.x) * Math.Sin(endTrailer.HeadingInRadians) 
                             + (endTrailer.rearWheelPos.z - trailerRearWheelPos.z) * Math.Cos(endTrailer.HeadingInRadians));
                         float trailerSidewaysDistance = (float)Math.Abs((endTrailer.rearWheelPos.x - trailerRearWheelPos.x) * Math.Cos(endTrailer.HeadingInRadians) 
@@ -558,7 +580,7 @@ namespace PathfindingForVehicles
                         float truckSidewaysDistance = (float)Math.Abs((endCar.rearWheelPos.x - newRearWheelPos.x) * Math.Cos(endCar.HeadingInRadians)
                             - (endCar.rearWheelPos.z - newRearWheelPos.z) * Math.Sin(endCar.HeadingInRadians));
                         float trailerAngleH = 0f;
-                        if (trailerDistance < 20)
+                        if (trailerDistance < 30)
                         { // Add heuristic costs for trailer position/angle
                             trailerAngleH = Math.Abs(Mathf.DeltaAngle(newTrailerHeading * Mathf.Rad2Deg, endTrailer.HeadingInDegrees));
                         }
@@ -660,7 +682,7 @@ namespace PathfindingForVehicles
 
             //But if we are close we might want to use the Reeds-Shepp distance as heuristics
             //This distance can be pre-calculated
-            if (cellData[cellPos.x, cellPos.z].distanceToTarget < 20f)
+            if (cellData[cellPos.x, cellPos.z].distanceToTarget < 0f)
             {
                 int timeBefore = Environment.TickCount;
 
@@ -713,16 +735,19 @@ namespace PathfindingForVehicles
             //Cost 4 - changing direction of motion from forward to reverse or the opposite because its annoying to sit in such a car
             float switchMotionCost = 0f;
 
-            if ((node.isReversing && !previousNode.isReversing) || (!node.isReversing && previousNode.isReversing))
+            if (node.isReversing != previousNode.isReversing)
             {
-                switchMotionCost = Parameters.switchingDirectionOfMovementCost;
+                if (previousNode.previousNode != null)
+                {
+                    switchMotionCost = Parameters.switchingDirectionOfMovementCost;
+                }
             }
 
             //Cost 5 - steering angle
             float steeringCost = Math.Abs(Mathf.DeltaAngle(steeringAngle, 0)) * Parameters.turningCost;
 
             //Cost 6 - change in steering angle
-            float steeringChangeCost = Math.Abs(steeringAngle - oldSteeringAngle) * Parameters.turningChangeCost;
+            float steeringChangeCost = Math.Abs(steeringAngle - node.steeringAngle) * Parameters.turningChangeCost;
 
             //Calculate the final cost
             float cost = costSoFar + distanceCost * (1f + voronoiCost + reverseCost) + switchMotionCost + steeringCost + steeringChangeCost;
