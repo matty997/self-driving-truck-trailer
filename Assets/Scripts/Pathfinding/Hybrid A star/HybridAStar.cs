@@ -580,7 +580,7 @@ namespace PathfindingForVehicles
                         float truckSidewaysDistance = (float)Math.Abs((endCar.rearWheelPos.x - newRearWheelPos.x) * Math.Cos(endCar.HeadingInRadians)
                             - (endCar.rearWheelPos.z - newRearWheelPos.z) * Math.Sin(endCar.HeadingInRadians));
                         float trailerAngleH = 0f;
-                        if (trailerDistance < 30)
+                        if (trailerDistance < 1000)
                         { // Add heuristic costs for trailer position/angle
                             trailerAngleH = Math.Abs(Mathf.DeltaAngle(newTrailerHeading * Mathf.Rad2Deg, endTrailer.HeadingInDegrees));
                         }

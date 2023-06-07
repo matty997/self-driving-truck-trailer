@@ -54,7 +54,7 @@ namespace PathfindingForVehicles
         //Heuristic Costs scale factors
         public const float carDistance = 0.1f;              // distance to end position of car/truck
         public const float trailerDistance = 1.0f;          // distance to end position of trailer
-        public const float trailerSidewaysDistance = 1.0f;  // sideways distance to end position of trailer
+        public const float trailerSidewaysDistance = 5.0f;  // sideways distance to end position of trailer
         public const float trailerForwardDistance = 0.0f;   // forward distance to end position of trailer
         public const float trailerAngle = 0.0f * Mathf.Deg2Rad; // diff angle trailer current/end
         public const float truckSidewaysDistance = 0.0f;    // sideways distance to end position of truck

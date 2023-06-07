@@ -13,6 +13,7 @@ public class testBenchmark : MonoBehaviour
     public Transform trailerStart;
 
     public Transform truckTrailerGoal;
+    private Transform truckTrailerMove;
 
     public enum VehicleTypes { None, Car, Semi, Semi_Trailer }
     private VehicleTypes activeVehicle = VehicleTypes.Semi_Trailer;
@@ -25,11 +26,13 @@ public class testBenchmark : MonoBehaviour
         current = this;
 
         GameObject deadTruckTrailerGoal = Instantiate(truckTrailerGoal.gameObject) as GameObject;
-        
+
+        truckTrailerMove = deadTruckTrailerGoal.transform;
+
         startPos = truckStart.position;
         startRot = truckStart.rotation;
         // Set vehicle to truck trailer
-        ActivateSemiWithTrailer();
+        ActivateSemiWithTrailerBench(startPos, startRot);
         Debug.Log("semi+trailer activated");
     }
 
@@ -39,24 +42,33 @@ public class testBenchmark : MonoBehaviour
         
     }
 
-
-    private void ActivateSemiWithTrailer()
+    private void DeActivateAllVehiclesBench()
     {
-        //UIController.current.SetFoundPathText("");
+        truckStart.gameObject.SetActive(false);
+        trailerStart.gameObject.SetActive(false);
+        truckTrailerGoal.gameObject.SetActive(false);
+        truckTrailerMove.gameObject.SetActive(false);
+    }
 
+
+    private void ActivateSemiWithTrailerBench(Vector3 position, Quaternion rotation)
+    {
+        DeActivateAllVehiclesBench();
+
+        truckStart.position = position;
+        truckStart.rotation = rotation;
         //Make the models visible
         truckStart.gameObject.SetActive(true);
 
         //DisplayController.current.ResetGUI();
 
         //Move it to the correct position behind the semi
-        trailerStart.position = truckStart.position;
-        trailerStart.rotation = Quaternion.identity;
+        trailerStart.position = position;
+        trailerStart.rotation = rotation;
 
         //Make the models visible
         trailerStart.gameObject.SetActive(true);
-        //But hide the marker where we want to go
-        truckTrailerGoal.gameObject.SetActive(false);
+        truckTrailerMove.gameObject.SetActive(true);
 
         Rigidbody rb = trailerStart.GetComponent<Rigidbody>();
 
@@ -93,7 +105,7 @@ public class testBenchmark : MonoBehaviour
         switch (activeVehicle)
         {
             case VehicleTypes.Semi_Trailer:
-                return truckTrailerGoal;
+                return truckTrailerMove;
         }
 
         return null;
@@ -126,7 +138,7 @@ public class testBenchmark : MonoBehaviour
     {
         if (activeVehicle == VehicleTypes.Semi_Trailer)
         {
-            return truckTrailerGoal.GetComponent<SemiWithTrailer>().trailerTrans;
+            return truckTrailerMove.GetComponent<SemiWithTrailer>().trailerTrans;
         }
 
         return null;
