@@ -31,10 +31,60 @@ public class pathFindingBenchmark : MonoBehaviour
         }
     }
 
+    private class BestOptions
+    {
+        public float TurningCost;
+        public float TurningChangeCost;
+        public float SwitchingDirectionOfMovementCost;
+        public float TrailerReverseCost;
+        public float TrailerAngleCost;
+        public float CarDistance;
+        public float TrailerDistance;
+        public float TrailerSidewaysDistance;
+        public float TrailerAngle;
+        public float Score;
+
+
+        public BestOptions(float turningCost, float turningChangeCost, float switchingDirectionOfMovementCost, float trailerReverseCost,
+            float trailerAngleCost, float carDistance, float trailerDistance, float trailerSidewaysDistance, float trailerAngle, float score)
+        {
+            TurningCost = turningCost;
+            TurningChangeCost = turningChangeCost;
+            SwitchingDirectionOfMovementCost = switchingDirectionOfMovementCost;
+            TrailerReverseCost = trailerReverseCost;
+            TrailerAngleCost = trailerAngleCost;
+            CarDistance = carDistance;
+            TrailerDistance = trailerDistance;
+            TrailerSidewaysDistance = trailerSidewaysDistance;
+            TrailerAngle = trailerAngle;
+
+            Score = score;
+        }
+        
+        public string PrintBestOptions()
+        {
+            string output = $"Options:\n" +
+                            $"\tTurningCost: {TurningCost}\n" +
+                            $"\tTurningChangeCost: {TurningChangeCost}\n" +
+                            $"\tSwitchingDirectionOfMovementCost: {SwitchingDirectionOfMovementCost}\n" +
+                            $"\tTrailerReverseCost: {TrailerReverseCost}\n" +
+                            $"\tTrailerAngleCost: {TrailerAngleCost}\n" +
+                            $"\tCarDistance: {CarDistance}\n" +
+                            $"\tTrailerDistance: {TrailerDistance}\n" +
+                            $"\tTrailerSidewaysDistance: {TrailerSidewaysDistance}\n" +
+                            $"\tTrailerAngle: {TrailerAngle}\n" +
+                            $"\tScore: {Score}";
+            return output;
+        }
+    }
+
     private List<TestPosition> testPositions = new List<TestPosition>();
     private List<int> results = new List<int>();
     private int total = 0;
     private int notFound = 0;
+    private float bestScore = 1000000f;
+    private float currentScore = 0;
+
 
     void Awake()
     {
@@ -76,15 +126,99 @@ public class pathFindingBenchmark : MonoBehaviour
             // Right
             testPositions.Add(new TestPosition(new Vector3(35f, 0f, 25f), new Vector3(i, 0f, 14f), 90, 0));
             // Backward
-            testPositions.Add(new TestPosition(new Vector3(50f, 0f, 60f), new Vector3(i, 0f, 14f), 90, 0));
+            testPositions.Add(new TestPosition(new Vector3(50f, 0f, 60f), new Vector3(i, 0f, 14f), 180, 0));
             // Left
-            testPositions.Add(new TestPosition(new Vector3(110f, 0f, 25f), new Vector3(i, 0f, 14f), 90, 0));
+            testPositions.Add(new TestPosition(new Vector3(110f, 0f, 25f), new Vector3(i, 0f, 14f), 270, 0));
             // Forward
-            testPositions.Add(new TestPosition(new Vector3(50f, 0f, 60f), new Vector3(i, 0f, 14f), 90, 0));
+            testPositions.Add(new TestPosition(new Vector3(50f, 0f, 60f), new Vector3(i, 0f, 14f), 0, 0));
         }
+
+        //StartCoroutine(ParameterOptimizer());
 
         StartCoroutine(PositionTester());
         
+    }
+
+    private IEnumerator ParameterOptimizer()
+    {
+        // Define the range of options for each parameter
+        float[] turningCostOptions = { 0.8f};
+        float[] turningChangeCostOptions = { 0.1f};
+        float[] switchingDirectionOfMovementCostOptions = { 20f};
+        float[] trailerReverseCostOptions = { 0f };
+        float[] trailerAngleCostOptions = { 0.0f * Mathf.Deg2Rad };
+        float[] carDistanceOptions = { 0.0f};
+        float[] trailerDistanceOptions = { 1.0f };
+        float[] trailerSidewaysDistanceOptions = { 0.8f };
+        float[] trailerAngleOptions = { 0.0f * Mathf.Deg2Rad, 1.0f * Mathf.Deg2Rad, 4.0f * Mathf.Deg2Rad };
+        BestOptions bestOptions = new BestOptions(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f);
+
+        int testParameterAmount = turningCostOptions.Length * turningChangeCostOptions.Length * switchingDirectionOfMovementCostOptions.Length *
+            trailerReverseCostOptions.Length * trailerAngleCostOptions.Length * carDistanceOptions.Length * trailerDistanceOptions.Length *
+            trailerSidewaysDistanceOptions.Length * trailerAngleOptions.Length;
+        int count = 0;
+
+        // Iterate over each parameter option
+        foreach (float turningCost in turningCostOptions)
+        {
+            foreach (float turningChangeCost in turningChangeCostOptions)
+            {
+                foreach (float switchingDirectionOfMovementCost in switchingDirectionOfMovementCostOptions)
+                {
+                    foreach (float trailerReverseCost in trailerReverseCostOptions)
+                    {
+                        foreach (float trailerAngleCost in trailerAngleCostOptions)
+                        {
+                            foreach (float carDistance in carDistanceOptions)
+                            {
+                                foreach (float trailerDistance in trailerDistanceOptions)
+                                {
+                                    foreach (float trailerSidewaysDistance in trailerSidewaysDistanceOptions)
+                                    {
+                                        foreach (float trailerAngle in trailerAngleOptions)
+                                        {
+                                            // Call your testing function or algorithm with the current parameter values
+                                            Parameters.turningCost = turningCost;
+                                            Parameters.turningChangeCost = turningChangeCost;
+                                            Parameters.switchingDirectionOfMovementCost = switchingDirectionOfMovementCost;
+                                            Parameters.trailerReverseCost = trailerReverseCost;
+                                            Parameters.trailerAngleCost = trailerAngleCost;
+                                            Parameters.carDistance = carDistance;
+                                            Parameters.trailerDistance = trailerDistance;
+                                            Parameters.trailerSidewaysDistance = trailerSidewaysDistance;
+                                            Parameters.trailerAngle = trailerAngle;
+
+                                            yield return StartCoroutine(PositionTester());
+
+                                            BestOptions newOptions = new BestOptions(turningCost, turningChangeCost, switchingDirectionOfMovementCost, 
+                                                    trailerReverseCost, trailerAngleCost, carDistance, trailerDistance, trailerSidewaysDistance, 
+                                                    trailerAngle, currentScore);
+                                            count += 1;
+                                            Debug.Log("Done " + count + " parameters of " + testParameterAmount + " " + count * 100 / testParameterAmount + 
+                                                " % done\tScore: " + currentScore + "\n" + newOptions.PrintBestOptions());
+
+                                            if (currentScore < bestScore)
+                                            {
+                                                bestScore = currentScore;
+
+                                                // Update the best options
+                                                bestOptions = newOptions;
+
+                                                Debug.Log("--------------------Found new Best Options!--------------------\n" + newOptions.PrintBestOptions());
+                                            }
+
+                                            currentScore = 0;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Debug.Log("Ran all parameter tests, best options:");
+        Debug.Log(bestOptions.PrintBestOptions());
     }
 
     private IEnumerator PositionTester()
@@ -98,15 +232,13 @@ public class pathFindingBenchmark : MonoBehaviour
             Transform truckBegin = testBenchmark.current.GetSelfDrivingCarTrans();
             Transform trailerBegin = testBenchmark.current.trailerStart;
             Transform truckGoal = testBenchmark.current.GetCarMouse();
-            Debug.Log(truckBegin.rotation);
             //Transform trailerGoal = testBenchmark.current.TryGetTrailerTransMouse();
             truckBegin.gameObject.SetActive(false);
             trailerBegin.gameObject.SetActive(false);
             truckBegin.position = testPosition.startPosition;
-            truckBegin.Rotate(Vector3.up * testPosition.startRotation);
-            Debug.Log(truckBegin.rotation);
+            truckBegin.rotation = Quaternion.Euler(0f, testPosition.startRotation, 0f);
             trailerBegin.position = testPosition.startPosition;
-            trailerBegin.Rotate(Vector3.up * testPosition.startRotation);
+            trailerBegin.rotation = Quaternion.Euler(0f, testPosition.startRotation, 0f);
             truckBegin.gameObject.SetActive(true);
             trailerBegin.gameObject.SetActive(true);
             truckGoal.position = testPosition.endPosition;
@@ -123,29 +255,22 @@ public class pathFindingBenchmark : MonoBehaviour
             positionsTested += 1;
         }
 
-        Debug.Log($"Tested {positionsTested} positions");
+        /*Debug.Log($"Tested {positionsTested} positions");
         Debug.Log($"Expanded nodes:");
-        /*foreach (int value in results)
+        *//*foreach (int value in results)
         {
             Debug.Log(value);
         }*/
         Debug.Log($"Total expanded nodes: {total}");
         Debug.Log($"Path not found: {notFound}");
         Debug.Log("Done with benchmark");
+        yield return null;
     }
 
     //Generate a path and send it to the car
     //We have to do it over some time to avoid a sudden stop in the simulation
     IEnumerator GeneratePathBench(Car startTruck, Car startTrailer, Car endTruck, Car endTrailer)
     {
-        //First we have to check if the self-driving car is inside of the grid
-        if (!map.IsPosWithinGrid(startTruck.rearWheelPos))
-        {
-            Debug.Log("The car is outside of the grid");
-
-            yield break;
-        }
-
         //Which cell do we want to reach? We have already checked that this cell is valid
         IntVector2 targetCell = map.ConvertWorldToCell(endTruck.rearWheelPos);
 
@@ -200,14 +325,13 @@ public class pathFindingBenchmark : MonoBehaviour
         if (finalPath == null || finalPath.Count == 0)
         {
             //UIController.current.SetFoundPathText("Failed to find a path!");
-            Debug.Log("Failed to find a path!");
+            //Debug.Log("Failed to find a path!");
             notFound += 1;
         }
         else
         {
             //UIController.current.SetFoundPathText("Found a path!");
-            Debug.Log("Found a path!");
-            total += expandedNodes.Count;
+            //Debug.Log("Found a path!");
         }
 
 
@@ -216,9 +340,11 @@ public class pathFindingBenchmark : MonoBehaviour
         //
 
         results.Add(expandedNodes.Count);
+        currentScore += expandedNodes.Count;
+        total += expandedNodes.Count;
 
         //Display how long time the different parts took
-        Debug.Log(timeText);
+        //Debug.Log(timeText);
 
         //Reset display
         displayController.ResetGUI();

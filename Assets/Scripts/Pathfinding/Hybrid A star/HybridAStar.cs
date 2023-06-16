@@ -3,6 +3,30 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 using PathfindingForVehicles.ReedsSheppPaths;
+using Newtonsoft.Json;
+using System.IO;
+
+
+public class SerializableObstacle
+{
+    public SerializableVector2 FL { get; set; }
+    public SerializableVector2 FR { get; set; }
+    public SerializableVector2 BL { get; set; }
+    public SerializableVector2 BR { get; set; }
+}
+
+public class SerializableVector2
+{
+    public float X { get; set; }
+    public float Y { get; set; }
+
+    public SerializableVector2(float x, float y)
+    {
+        X = x;
+        Y = y;
+    }
+}
+
 
 namespace PathfindingForVehicles
 {
@@ -17,15 +41,15 @@ namespace PathfindingForVehicles
         //The steering angles we are going to test
         private static float maxAngle = 30f;
         // Calculate the angle spacing
-        private static int steeringAnglesAmount= 7;
+        private static int steeringAnglesAmount= 5;
         //private static float[] steeringAngles = new float[] { -maxAngle * Mathf.Deg2Rad, 0f, maxAngle * Mathf.Deg2Rad };
         private static float[] steeringAngles = generateSteeringAngles(maxAngle, steeringAnglesAmount);
         //The car will never reach the exact goal position, this is how accurate we want to be
         private const float posAccuracy = 1f;
         private const float headingAccuracy = 15f;
         //The heading resolution (Junior had 5) [degrees]
-        private const float headingResolution = 2f;
-        private const float headingResolutionTrailer = 2f;
+        private const float headingResolution = 5f;
+        private const float headingResolutionTrailer = 5f;
         //To time the different parts of the algorithm 
         private static int timer_selectLowestCostNode;
         private static int timer_addNodeToHeap;
@@ -50,7 +74,7 @@ namespace PathfindingForVehicles
             for (int i = 0; i < numberOfAngles; i++)
             {
                 angles[i] = (-maxAngle + (i * angleStep));
-                Debug.Log(angles[i]);
+                //Debug.Log(angles[i]);
             }
             
             return angles;
@@ -151,9 +175,9 @@ namespace PathfindingForVehicles
 
             while (!found && !resign)
             {
-                if (iterations > 40000)
+                if (iterations > 20000)
                 {
-                    Debug.Log("Stuck in infinite loop");
+                    //Debug.Log("Stuck in infinite loop");
 
                     break;
                 }
@@ -165,7 +189,7 @@ namespace PathfindingForVehicles
                 {
                     resign = true;
 
-                    Debug.Log("Failed to find a path");
+                    //Debug.Log("Failed to find a path");
                 }
                 //We have nodes to expand
                 else
@@ -448,6 +472,66 @@ namespace PathfindingForVehicles
             //Generate the final path when Hybrid A* has found the goal
             List<Node> finalPath = GenerateFinalPath(finalNode);
 
+            // List of variables for storing node/waypoints state values to form datastructure we can send via .JSON to python
+            var positions = new List<List<double>>();
+            var headings = new List<double>();
+            var hitch_angles = new List<double>();
+            var steer = new List<double>();
+
+            for (int i = 0; i < finalPath.Count; i++)
+            {
+                // Actually adding the node/waypoint state values to the variables
+                positions.Add(new List<double> { finalPath[i].rearWheelPos.x, finalPath[i].rearWheelPos.z }); // has to be x and z because our coordinate system is weird in Unity
+                headings.Add(Mathf.DeltaAngle(finalPath[i].heading * Mathf.Rad2Deg, 0) * Mathf.Deg2Rad); // truck heading
+                hitch_angles.Add(Mathf.DeltaAngle(finalPath[i].TrailerHeadingInRadians * Mathf.Rad2Deg, finalPath[i].heading * Mathf.Rad2Deg) * Mathf.Deg2Rad);
+                // Angles need to be calculated with Mathf.DeltaAngle, also hitch angle could probably be set to 0 as reference
+                // Since we want to keep hitch angle as low as possible, using a higher than 0 hitch angle as reference/initial guess might actually make it work worse, have to test this
+                // Might just remove the hitch_angles from the JSON data structure and just use np.zeros
+                // Steering angle and velocity + steering speed might add something, so could look into adding those. Steering angle is already available under node.nodesteeringangle
+                // Velocity and steering speed not sure how to implement, I also wonder if those will even add anything to the TO, as there is already upper and lower bounds on those
+                // So not too much freedom is left to the optimization algorithm (IPOPT)
+            }
+            // Creating the datastructure we want to send
+            var pathdata = new
+            {
+                Positions = positions,
+                Headings = headings,
+                HitchAngles = hitch_angles
+            };
+            // Writing to the .JSON named 'initialize' that we can send once to our TO (Trajectory Optimization) as initial guess
+            File.WriteAllText("initialize.json", JsonConvert.SerializeObject(pathdata, Formatting.Indented));
+            Debug.Log($"Path JSON succesfully made");
+
+
+            // Test to see what format the obstacles are in exactly, needed for importing to python. 
+            // First we take a list of all obstacles, then we make this into the new class serializableobstacle, which just has the info we want (Makes it easier to handle)
+            List<Obstacle> obstaclesall = map.allObstacles;
+            List<SerializableObstacle> serializableObstacles = new List<SerializableObstacle>();
+
+            // Now we loop through all obstacles and get the Vector2 coordinates of the cornerpoints
+            // Then we add a new serializableobstacle with those cornerpoints to the list of serializableobstacles (starts out empty)
+            for (int i = 0; i < obstaclesall.Count; i++)
+            {
+                Vector2 FL = obstaclesall[i].cornerPos.FL.XZ();
+                Vector2 FR = obstaclesall[i].cornerPos.FR.XZ();
+                Vector2 BL = obstaclesall[i].cornerPos.BL.XZ();
+                Vector2 BR = obstaclesall[i].cornerPos.BR.XZ();
+
+                serializableObstacles.Add(new SerializableObstacle
+                {
+                    FL = new SerializableVector2(FL.x, FL.y),
+                    FR = new SerializableVector2(FR.x, FR.y),
+                    BL = new SerializableVector2(BL.x, BL.y),
+                    BR = new SerializableVector2(BR.x, BR.y),
+                });
+            }
+
+            // Now we format the string to be put into the JSON in the correct way
+            string obstaclejson = JsonConvert.SerializeObject(serializableObstacles, Formatting.Indented);
+            // And write the data to a JSON, this data can then be read in a python script to import the obstacle coordinates
+            File.WriteAllText("obstacles.json", obstaclejson);
+            Debug.Log($"Obstacle JSON succesfully made");
+
             for (int i = 0; i < finalPath.Count; i++)
             {
                 Debug.Log($"Node {i} | fCost {finalPath[i].fCost} | gCost {finalPath[i].gCost} | hCost {finalPath[i].hCost} | " +
@@ -550,7 +634,8 @@ namespace PathfindingForVehicles
                         float thetaOldDragVehicle = currentNode.HeadingInRadians;
                         float D = driveDistance;
                         float d = startTrailer.carData.WheelBase;
-                        float newTrailerHeading = VehicleSimulationModels.CalculateNewTrailerHeading(thetaOld, thetaOldDragVehicle, D, d);
+                        float newTrailerHeading = VehicleSimulationModels.CalculateNewTrailerHeading(thetaOld, thetaOldDragVehicle, driveDistance,
+                                                                                                     startTrailer.carData.WheelBase, beta);
 
                         childNode.TrailerHeadingInRadians = newTrailerHeading;
 
@@ -580,13 +665,26 @@ namespace PathfindingForVehicles
                         float truckSidewaysDistance = (float)Math.Abs((endCar.rearWheelPos.x - newRearWheelPos.x) * Math.Cos(endCar.HeadingInRadians)
                             - (endCar.rearWheelPos.z - newRearWheelPos.z) * Math.Sin(endCar.HeadingInRadians));
                         float trailerAngleH = 0f;
-                        if (trailerDistance < 1000)
+
+                        if (trailerDistance < 55)
                         { // Add heuristic costs for trailer position/angle
                             trailerAngleH = Math.Abs(Mathf.DeltaAngle(newTrailerHeading * Mathf.Rad2Deg, endTrailer.HeadingInDegrees));
+                            trailerAngleH *= Mathf.Clamp01(1f - (trailerDistance - 25) / (55 - 25));
                         }
+
+                        if (trailerForwardDistance < 25)
+                        {
+                            trailerForwardDistance = 0;
+                        }
+                        else
+                        {
+                            trailerForwardDistance -= 25;
+                        }
+
                         float trailerHeuristics = trailerAngleH * Parameters.trailerAngle + trailerDistance * Parameters.trailerDistance +
                             trailerForwardDistance * Parameters.trailerForwardDistance + trailerSidewaysDistance * Parameters.trailerSidewaysDistance + 
                             truckSidewaysDistance * Parameters.truckSidewaysDistance;
+
                         childNode.hCost += trailerHeuristics;
                         /*Debug.Log($"fCost: {childNode.fCost} | gCost: {childNode.gCost} | relAngle: {relTrailerAngle} | " +
                             $"hCost: {childNode.hCost} | Trailer: {trailerHeuristics} | Angle: {trailerAngleH} | " +
@@ -777,7 +875,7 @@ namespace PathfindingForVehicles
                 }
                 else
                 {
-                    Debug.Log("node already in path! Circle detected");
+                    //Debug.Log("node already in path! Circle detected");
                     break;
                 }
 

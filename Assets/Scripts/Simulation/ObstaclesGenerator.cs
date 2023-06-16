@@ -16,24 +16,25 @@ namespace PathfindingForVehicles
         public GameObject obstaclePrefabObj;
 
 
-
         public void InitObstacles(Map map, Vector3 startPosi)
         {
             List<Vector3> predefinedPositions = new List<Vector3>();
             List<Vector3> predefinedScales = new List<Vector3>();
 
-            int parkingLotSize = 10; // Number of parking spots
+            int parkingLots = 1; // Number of parking spots
             float parkingSpaceWidth = 10f; // Width of parking spots, width of truck seems to be around 3f, for reference
-            float parkingSpaceLength = 18f; // Length of parking space , length of truck seems to be around 17f, for reference
+            float obstacleWidth = 40f;
+            float lotSize = parkingSpaceWidth + obstacleWidth;
+            float parkingSpaceLength = 17.9f; // Length of parking space , length of truck seems to be around 17f, for reference
 
             // Vertical lines for boundaries of parking spots
-            for (float i = 0; i <= parkingLotSize * parkingSpaceWidth; i += parkingSpaceWidth)
+            for (float i = obstacleWidth/2; i <= parkingLots * lotSize + obstacleWidth; i += lotSize)
             {
                 Vector3 startPos = new Vector3(i, 0, 0);
                 Vector3 endPos = new Vector3(i, 0, parkingSpaceLength);
 
                 Vector3 obstaclePos = Vector3.Lerp(startPos, endPos, 0.5f); // Position will be at the middle of the line
-                Vector3 obstacleScale = new Vector3(0.1f, 1f, (endPos - startPos).magnitude); // Scale will be equal to line's length
+                Vector3 obstacleScale = new Vector3(obstacleWidth, 1f, (endPos - startPos).magnitude); // Scale will be equal to line's length
 
                 predefinedPositions.Add(obstaclePos);
                 predefinedScales.Add(obstacleScale);
@@ -66,7 +67,6 @@ namespace PathfindingForVehicles
                 }
             }
         }
-
 
 
         //Generate obstacles and return the center coordinates of them in a list 

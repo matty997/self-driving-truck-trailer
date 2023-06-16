@@ -43,21 +43,22 @@ namespace PathfindingForVehicles
         //Costs to make the car behave in different ways
         //For example, we prefere to drive forward instead of reversing
         //Cost to go
-        public const float turningCost = 0.5f;      // [rad]
-        public const float turningChangeCost = 0.0f;// [rad]
+        public static float turningCost = 1.0f;      // [rad]
+        public static float turningChangeCost = 5.0f;// [rad]
         public const float obstacleCost = 0.0f;
         public const float reverseCost = 0f;        // [m]
-        public const float switchingDirectionOfMovementCost = 20f;
+        public static float switchingDirectionOfMovementCost = 20f;
         //Extra cost for trailer because its not good at reversing
-        public const float trailerReverseCost = 0f;
-        public const float trailerAngleCost = 0.5f * Mathf.Deg2Rad; // Angle truck/trailer [deg]
+        public static float trailerReverseCost = 1f;
+        public static float trailerAngleCost = 1.0f * Mathf.Deg2Rad; // Angle truck/trailer [deg]
         //Heuristic Costs scale factors
-        public const float carDistance = 0.1f;              // distance to end position of car/truck
-        public const float trailerDistance = 1.0f;          // distance to end position of trailer
-        public const float trailerSidewaysDistance = 5.0f;  // sideways distance to end position of trailer
-        public const float trailerForwardDistance = 0.0f;   // forward distance to end position of trailer
-        public const float trailerAngle = 0.0f * Mathf.Deg2Rad; // diff angle trailer current/end
+        public static float carDistance = 0.0f;              // distance to end position of car/truck
+        public static float trailerDistance = 1.0f;          // distance to end position of trailer
+        public static float trailerSidewaysDistance = 3.0f;  // sideways distance to end position of trailer
+        public const float trailerForwardDistance = 10.0f;   // forward distance to end position of trailer
+        public static float trailerAngle = 30.0f * Mathf.Deg2Rad; // diff angle trailer current/end
         public const float truckSidewaysDistance = 0.0f;    // sideways distance to end position of truck
+        public const float truckForwardDistance = 0.0f;
 
         //Voronoi field
         //The falloff rate > 0

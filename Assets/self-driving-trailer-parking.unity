@@ -3445,7 +3445,7 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.1
+    widthMultiplier: 0.20307553
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -4364,7 +4364,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4336473995567042, guid: a04ac79451ea00947a6941bf2cee8199, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 19.3
+      value: 22.02
       objectReference: {fileID: 0}
     - target: {fileID: 4336473995567042, guid: a04ac79451ea00947a6941bf2cee8199, type: 3}
       propertyPath: m_LocalPosition.y
@@ -4372,7 +4372,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4336473995567042, guid: a04ac79451ea00947a6941bf2cee8199, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 26
+      value: 29.79
       objectReference: {fileID: 0}
     - target: {fileID: 4336473995567042, guid: a04ac79451ea00947a6941bf2cee8199, type: 3}
       propertyPath: m_LocalRotation.w
@@ -7104,6 +7104,11 @@ PrefabInstance:
     - target: {fileID: 4707169377363182, guid: 92ef896797e4ad24ea2f5112ca77c400, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 146151819146528904, guid: 92ef896797e4ad24ea2f5112ca77c400,
+        type: 3}
+      propertyPath: m_Radius
+      value: 0.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 92ef896797e4ad24ea2f5112ca77c400, type: 3}

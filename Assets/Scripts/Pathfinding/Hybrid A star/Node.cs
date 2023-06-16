@@ -12,6 +12,8 @@ namespace PathfindingForVehicles
         //The estimated cost to the goal from this node = the heuristics
         //Needed so we can calculate the f cost easier
         public float hCost;
+        
+        public float speed;
 
         //The data we need for the car
         //The position the car's rear axle should have when following the path
