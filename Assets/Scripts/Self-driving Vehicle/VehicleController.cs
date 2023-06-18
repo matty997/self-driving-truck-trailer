@@ -36,6 +36,10 @@ namespace SelfDrivingVehicle
         private Vector3 direction = Vector3.zero;
         private float steeringAngle = 0f;
 
+        private float accelaration = 0f;
+        private float mass = 20000;
+        private float wheelRadius = 0.25f;
+
         //Reference to the PID controller
         private PIDController PIDScript;
         //Reference to the script that makes the car follow a path
@@ -76,10 +80,10 @@ namespace SelfDrivingVehicle
 
         void FixedUpdate()
         {
-            // AddMotorAndSteering();
-            // CalculateSpeed();
+            AddMotorAndSteering();
+            CalculateSpeed();
 
-            // Get the current states and save them to a json file
+            /*// Get the current states and save them to a json file
             direction = transform.position - lastPosition;
             float x = transform.position.x;
             float z = transform.position.z;
@@ -101,13 +105,19 @@ namespace SelfDrivingVehicle
             // Retrieve new control inputs from json
 
             float steeringChange = 0f;
-            float accelaration = 0f;
+            accelaration = 0f;
 
             // Apply controls
-            steeringAngle += steeringChange * Time.deltaTime; // not sure about deltaTime here
+            steeringAngle += steeringChange * Time.deltaTime; // not sure about deltaTime here*/
 
         }
 
+
+        void ApplyMotorAndSteering()
+        {
+            float torque = accelaration * mass * wheelRadius;
+
+        }
 
 
         void AddMotorAndSteering()

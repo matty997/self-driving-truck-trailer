@@ -1,44 +1,64 @@
-# Self Driving Vehicle
+# Self Parking Truck Trailer
 
-Let's say you are standing somewhere in a room and would like to find the shortest path to a goal. You can see a few obstacles, such as a table, that you would like to avoid. The easiest way to solve the problem (if you are a computer) is to divide the room into many small squares (cells) and then use the common A* (A Star) search algorithm to find the shortest path. 
+## Implementation of an Anti-Jackknife Controller to Enhance Motion Planning for Truck-Trailers.
 
-But what if you are a car and can't turn around 360 degrees like a human can, then you have a problem! Well, at least until you learn the Hybrid A Star search algorithm. With that algorithm you will be able to find a fully drivable path to the goal!
+The development of automated truck trailers has the potential to improve transportation efficiency at loading docks and 
+warehouses. One crucial aspect of an automated truck trailer is the motion planning system, which generates a feasible 
+path for the vehicle to follow. However, when a path requires the truck trailer to move in reverse, there is a 
+significant risk of the trailer folding inwards and hitting the truck, a phenomenon known as jackknifing. This paper 
+describes a method to mitigate this issue by implementing an MPC to counteract jackknifing. This enables robust backward
+driving of a truck-trailer combination, as well as a more flexible path planning algorithm for use in a warehouse 
+parking scenario.
 
-Click for YouTube video of the algorithm in action:
+This GitHub page contains all code used to implement an Anti-Jackknifing controller together with a motion planner based 
+on a Hybrid A* path finding algorithm with a Trajectory optimization algorithm.
+
+As a basis for this project the code from Erik Nordeus has been used: https://github.com/Habrador/Self-driving-vehicle.
+Big improvements have been made for the scenario with a truck and trailer as this was a TODO item for Nordeus. New 
+heuristic costs have been developed to increase the performance of the path finding algorithm. 
+
+Videos of these parts can be seen here:
 
 [![Link to youtube video](https://img.youtube.com/vi/L591fS51F4I/0.jpg)](https://www.youtube.com/watch?v=L591fS51F4I)
 
-If you just want to play around with it you can download a build of the project here for Windows: https://habrador.itch.io/hybrid-a-star
 
+## How this project works
 
+A scenario has been created with different parking spots. A truck trailer model can be placed in one of these spots.
+The Hybrid A* algorithm will find a path between the start position and the end position with the lowest costs. This 
+path is found by expanding nodes in forward and backward direction under different steering angles to find new nodes. 
+For each node a cost is calculated and the node with the lowest cost is expanded upon. These costs are based on two parts:
+1. Cost to go
+   - Driven distance forward
+   - Driven distance backward
+   - Absolute steering wheel angle
+   - Change in steering wheel angle
+   - Hitch Angle
 
-## Tell me how the algorithm works
+2. Heuristics
+   - Absolute distance between current and end trailer
+   - Sideways distance between current and end trailer
+   - Forward distance between current and end trailer
+   - Angle between the current and end trailer
+   - Switching direction of movement
 
-You can read more about it here: https://blog.habrador.com/2015/11/explaining-hybrid-star-pathfinding.html
+After a path has been found this path is saved and sent to the trajectory optimization code. This algorithm optimizes
+the trajectory by making the path smooth, so it can be more easily followed by the controller, and by optimizing a cost
+function.
 
-
-
-## Is this something actually being used by car companies?
-
-Yes! Tesla mentioned the algorithm in a [Tesla AI Day](https://www.youtube.com/watch?v=j0z4FweCy4M) presentation (roughly at 1 hour 20 minutes). So if you ever wondered how the Tesla "Smart Summon" feature works then now you know! Tesla has included a short description of the Smart Summon feature (which is part of the Full Self-Driving Capability (FSD) version of Tesla Autopilot) in the [Model Y Manual](https://www.tesla.com/ownersmanual/modely/en_eu/GUID-6B9A1AEA-579C-400E-A7A6-E4916BCD5DED.html). We can assume it's the same implementation for other Tesla models, such as Model S. 
-
-* **"Smart Summon works with the Tesla mobile app when your phone is located within approximately 6 meters of Model Y."** My implementation works over distances of greater than 6 meters. 
-
-* **"Smart Summon may not stop for all objects (especially very low objects such as some curbs, or very high objects such as a shelf) and may not react to all traffic. Smart Summon does not recognize the direction of traffic, does not navigate around empty parking spaces, and may not anticipate crossing traffic."** My implementation has fixed obstacles only, and they all have the same height. I actually planned to add moving objects and traffic lanes with direction, but will not do so because Tesla's implementation can't handle them.
-
-* **"Touch the crosshair icon then drag the map to position the pin on a chosen destination. Press and hold the GO TO TARGET button. Model Y moves to the destination."** My implementation is not just moving to a destination, but also with a specific target direction, such as the left door ends up infront of you.         
-
-
+The optimized path is sent back to the truck. The MPC controller will follow this path while making sure no jackkniffing 
+occurs.
 
 ## FAQ 
 
-* **What software do I need?** To make this project work you need [Unity](https://unity.com/). I've used Unity 2017-2021 but other versions should work as well. 
+* **What software do I need?** To make this project work you need [Unity](https://unity.com/) together with 
+[Python](https://www.python.org/). 
+* **Where can I find the Hybrid A\* algorithm?**  This implementation can be found under 
+Assets/Scripts/Pathfinding/Hybrid A star/HybridAStar.cs. The parameters used can be found in 
+Assets/Scripts/Pathfinding/Parameters.cs
+* **Where can I find the Trajectory Optimization code?**
+* **Where can I find the MPC controller code?** 
 
-* **Is it working on a navmesh?** No, it's not! The algorithm needs a grid with cells to be able to remove unnecessary nodes, or you will end up with an infinite amount of nodes.
 
-
-
-## TODO
-
-* The car can follow the generated paths with great accuracy, but the truck with trailer is not that good at following the path. That has to be fixed!
-
+TU Delft BEP by:
+Cedric Pelsma, Erwin Bus, Kik Kramer, Matthijs Steyerberg, Mitchel Castelyns

@@ -121,7 +121,7 @@ public class pathFindingBenchmark : MonoBehaviour
 
         //testPositions.Add(new TestPosition(new Vector3(48f, 0f, 67f), new Vector3(5f, 0f, 14f), 0, 0));
 
-        for(int i = 5; i < 105; i += 10)
+        for(int i = 5; i < 110; i += 11)
         {
             // Right
             testPositions.Add(new TestPosition(new Vector3(35f, 0f, 25f), new Vector3(i, 0f, 14f), 90, 0));

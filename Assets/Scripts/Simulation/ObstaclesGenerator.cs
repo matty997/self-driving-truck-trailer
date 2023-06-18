@@ -21,9 +21,9 @@ namespace PathfindingForVehicles
             List<Vector3> predefinedPositions = new List<Vector3>();
             List<Vector3> predefinedScales = new List<Vector3>();
 
-            int parkingLots = 1; // Number of parking spots
+            int parkingLots = 10; // Number of parking spots
             float parkingSpaceWidth = 10f; // Width of parking spots, width of truck seems to be around 3f, for reference
-            float obstacleWidth = 40f;
+            float obstacleWidth = 1f;
             float lotSize = parkingSpaceWidth + obstacleWidth;
             float parkingSpaceLength = 17.9f; // Length of parking space , length of truck seems to be around 17f, for reference
 
