@@ -121,16 +121,16 @@ public class pathFindingBenchmark : MonoBehaviour
 
         //testPositions.Add(new TestPosition(new Vector3(48f, 0f, 67f), new Vector3(5f, 0f, 14f), 0, 0));
 
-        for(int i = 5; i < 110; i += 11)
+        for(int i = 6; i < 110; i += 11)
         {
             // Right
-            testPositions.Add(new TestPosition(new Vector3(35f, 0f, 25f), new Vector3(i, 0f, 14f), 90, 0));
+            testPositions.Add(new TestPosition(new Vector3(35f, 0f, 25f), new Vector3(i, 0f, 15f), 90, 0));
             // Backward
-            testPositions.Add(new TestPosition(new Vector3(50f, 0f, 60f), new Vector3(i, 0f, 14f), 180, 0));
+            testPositions.Add(new TestPosition(new Vector3(50f, 0f, 60f), new Vector3(i, 0f, 15f), 180, 0));
             // Left
-            testPositions.Add(new TestPosition(new Vector3(110f, 0f, 25f), new Vector3(i, 0f, 14f), 270, 0));
+            testPositions.Add(new TestPosition(new Vector3(110f, 0f, 25f), new Vector3(i, 0f, 15f), 270, 0));
             // Forward
-            testPositions.Add(new TestPosition(new Vector3(50f, 0f, 60f), new Vector3(i, 0f, 14f), 0, 0));
+            testPositions.Add(new TestPosition(new Vector3(50f, 0f, 60f), new Vector3(i, 0f, 15f), 0, 0));
         }
 
         //StartCoroutine(ParameterOptimizer());
@@ -262,6 +262,7 @@ public class pathFindingBenchmark : MonoBehaviour
             Debug.Log(value);
         }*/
         Debug.Log($"Total expanded nodes: {total}");
+        Debug.Log($"Positions tested: {positionsTested}");
         Debug.Log($"Path not found: {notFound}");
         Debug.Log("Done with benchmark");
         yield return null;

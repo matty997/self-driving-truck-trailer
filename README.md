@@ -19,7 +19,9 @@ heuristic costs have been developed to increase the performance of the path find
 
 Videos of these parts can be seen here:
 
-[![Link to youtube video](https://img.youtube.com/vi/L591fS51F4I/0.jpg)](https://www.youtube.com/watch?v=L591fS51F4I)
+* Hybrid A*
+
+[![Link to youtube video](https://img.youtube.com/vi/w20xxT76pXc/0.jpg)](https://youtu.be/w20xxT76pXc)
 
 
 ## How this project works
@@ -36,7 +38,7 @@ For each node a cost is calculated and the node with the lowest cost is expanded
    - Hitch Angle
 
 2. Heuristics
-   - Absolute distance between current and end trailer
+   - Absolute Euclidian distance between current and end trailer
    - Sideways distance between current and end trailer
    - Forward distance between current and end trailer
    - Angle between the current and end trailer
