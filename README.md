@@ -34,7 +34,7 @@ Videos of these parts can be seen here:
 
 * Hybrid A*
 
-[![Link to hybrid A* youtube video](https://img.youtube.com/vi/w20xxT76pXc/0.jpg)](https://youtu.be/w20xxT76pXc)
+[![Link to hybrid A* youtube video](https://img.youtube.com/vi/w20xxT76pXc/0.jpg)](https://www.youtube.com/watch?v=w20xxT76pXc)
 
 * Trajectory Optimization
 
