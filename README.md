@@ -15,14 +15,34 @@ on a Hybrid A* path finding algorithm with a Trajectory optimization algorithm.
 
 As a basis for this project the code from Erik Nordeus has been used: https://github.com/Habrador/Self-driving-vehicle.
 Big improvements have been made for the scenario with a truck and trailer as this was a TODO item for Nordeus. New 
-heuristic costs have been developed to increase the performance of the path finding algorithm. 
+heuristic costs have been developed to increase the performance of the path finding algorithm. The smoothing of the path
+is now also done by an optimization algorithm. The basic PID controller has been replaced by an MPC, resulting in better
+driving of the truck trailer, especially going backwards.
 
+### The goal of this project
+
+The target for this project is to autonomously park a truck trailer in a warehouse scenario as can be seen in the image 
+below. The truck will need to dinamically find a path between the starting position and the target position. When a path
+is found the truck will need to drive this path without the trailer jackkniffing.
+![Goal.png](_media%2FGoal.png)
+The following image show a general overview of how this project works. 
+
+![overzicht structuur.png](_media%2Foverzicht%20structuur.png)
+
+### In action
 Videos of these parts can be seen here:
 
 * Hybrid A*
 
-[![Link to youtube video](https://img.youtube.com/vi/w20xxT76pXc/0.jpg)](https://youtu.be/w20xxT76pXc)
+[![Link to hybrid A* youtube video](https://img.youtube.com/vi/w20xxT76pXc/0.jpg)](https://youtu.be/w20xxT76pXc)
 
+* Trajectory Optimization
+
+![TrajectoryAnimation.png](_media%2FTrajectoryAnimation.png)
+
+* Model Predictive Controller
+
+![MPCdinges.png](_media%2FMPCdinges.png)
 
 ## How this project works
 
@@ -58,8 +78,8 @@ occurs.
 * **Where can I find the Hybrid A\* algorithm?**  This implementation can be found under 
 Assets/Scripts/Pathfinding/Hybrid A star/HybridAStar.cs. The parameters used can be found in 
 Assets/Scripts/Pathfinding/Parameters.cs
-* **Where can I find the Trajectory Optimization code?**
-* **Where can I find the MPC controller code?** 
+* **Where can I find the Trajectory Optimization code?** This is located in the folder PythonParts.
+* **Where can I find the MPC controller code?** This is located in the folder PythonParts.
 
 
 TU Delft BEP by:
