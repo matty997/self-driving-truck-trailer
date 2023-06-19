@@ -65,11 +65,14 @@ For each node a cost is calculated and the node with the lowest cost is expanded
    - Switching direction of movement
 
 After a path has been found this path is saved and sent to the trajectory optimization code. This algorithm optimizes
-the trajectory by making the path smooth, so it can be more easily followed by the controller, and by optimizing a cost
-function.
+the trajectory by making the path smooth, so it can be more easily followed by the controller, this is done by optimizing a cost function. The trajectory animation is defined as a minimization problem,
+that also includes constraints on the states and control inputs of the system (this is to prevent jackknifing and abrupt changes in speed or steering). There are also constraints added to avoid collisions.
 
-The optimized path is sent back to the truck. The MPC controller will follow this path while making sure no jackkniffing 
-occurs.
+The optimized path is sent back to be used in the controller to control the truck. The MPC controller will follow this path while making sure no jackkniffing 
+occurs. This is again described as an optimization problem, with a cost function that includes the difference between the optimized path's states and the actual states. And also includes constraints on the states and control inputs.
+No collision constraints are considered for the MPC, as in reality the MPC should ideally not be deviating from the optimized path, which is already collision free. And adding the constraints would increase the computation time a lot.
+
+To generate the collision constraints in a way that can be used by the solver (IPOPT) we have used the method described in [Optimization-Based Collision Avoidance](https://arxiv.org/pdf/1711.03449.pdf). This method is known as optimization based collision avoidance (OBCA)
 
 ## FAQ 
 
@@ -84,3 +87,6 @@ Assets/Scripts/Pathfinding/Parameters.cs
 
 TU Delft BEP by:
 Cedric Pelsma, Erwin Bus, Kik Kramer, Matthijs Steyerberg, Mitchel Castelyns
+
+Special thanks to our supervisor: 
+Luyao Zhang
